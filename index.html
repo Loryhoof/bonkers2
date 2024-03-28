@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="src/style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bonkers</title>
+  </head>
+  <body>
+    <div id="infoText">Info Panel</div>
+    <div id="hotBar">
+        <button class="hotBarItem" id="item1" draggable="true"></button>
+        <button class="hotBarItem" id="item2" draggable="true"></button>
+        <button class="hotBarItem" id="item3" draggable="true"></button>
+        <button class="hotBarItem" id="item4" draggable="true"></button>
+        <button class="hotBarItem" id="item5" draggable="true"></button>
+        <button class="hotBarItem" id="item6" draggable="true"></button>
+    </div>
+    <div id="healthBar">
+        <input type="range" id="healthSlider" min="0" max="100" value="100">
+    </div>
+    <canvas id="app"></canvas>
+    <script type="module" src="/src/ts/main.ts"></script>
+  </body>
+</html>

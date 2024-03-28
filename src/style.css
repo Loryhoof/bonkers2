@@ -1,0 +1,105 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+  }
+#infoText {
+    position: absolute; /* Position the text relative to the body */
+    top: 10px; /* Adjust the distance from the top */
+    left: 10px; /* Adjust the distance from the left */
+    color: white; /* Text color */
+    font-size: 20px; /* Adjust font size */
+    font-family: Arial, sans-serif; /* Adjust font family */
+    z-index: 9999; /* Ensure the text is on top of other elements */
+}
+#hotBar {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#inventory {
+    position: absolute;
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Center both horizontally and vertically */
+    width: 400px; /* Adjust the width of the inventory */
+    max-height: 300px; /* Limit the height of the inventory */
+    overflow-y: auto; /* Add vertical scroll if items exceed the height */
+    background-color: rgba(0, 0, 0, 0.5); /* Adjust background color */
+    color: white; /* Text color */
+    padding: 10px; /* Add padding */
+    display: grid; /* Use grid layout */
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); /* Automatically fill columns, minimum width of 40px */
+    justify-content: center; /* Center items horizontally */
+    gap: 5px; /* Adjust gap between items */
+}
+
+.inventoryItem {
+    width: 60px; /* Adjust width of each inventory item */
+    height: 60px; /* Adjust height of each inventory item */
+    background-color: rgba(92, 89, 89, 0.562); /* Adjust background color */
+    border: none; /* Remove border */
+    cursor: pointer; /* Set cursor to pointer */
+}
+.hotBarItem {
+    position: relative;
+    width: 60px; /* Adjust width of each slot */
+    height: 60px; /* Adjust height of each slot */
+    margin: 0 5px; /* Adjust margin between slots */
+    background-color: rgba(92, 89, 89, 0.562); /* Adjust background color */
+    border: none; /* Remove border */
+    cursor: pointer; /* Set cursor to pointer */
+}
+.hotBarItem:focus {
+    outline: none; /* Remove the default focus outline */
+}
+.itemImage {
+    width: 100%; /* Ensure the image takes up the entire space of its container */
+}
+.itemAmount {
+    position: absolute; /* Position the number relative to its parent container */
+    bottom: 5px; /* Position the number at the top */
+    right: 5px; /* Position the number at the right */
+    color: white; /* Example: Set text color */
+    padding: 2px 5px; /* Example: Add padding to the number */
+    border-radius: 50%; /* Example: Make the number a circle */
+    font-size: 14px; /* Example: Set font size */
+}
+#healthBar {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 250px;
+    height: 35px;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 6px;
+}
+
+#healthSlider {
+    -webkit-appearance: none;
+    width: 100%; /* Adjust width to compensate for any extra spacing */
+    height: 100%;
+    background-color: rgba(139, 195, 74, 1); /* Green color */
+    outline: none;
+    opacity: 1; /* Fully opaque */
+    cursor: default; /* Disable cursor */
+    pointer-events: none; /* Disable mouse interaction */
+    margin: 0; /* Remove any margin */
+    padding: 0; /* Remove any padding */
+    border: none; /* Remove border */
+    box-sizing: border-box; /* Ensure width includes padding and border */
+}
+
+#healthSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#healthSlider::-moz-range-thumb {
+    width: 0; /* Remove the thumb for Mozilla Firefox */
+}
