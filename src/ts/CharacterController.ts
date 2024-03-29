@@ -9,6 +9,7 @@ import ItemType from '../enums/ItemType'
 import Firearm from '../interfaces/Firearm'
 import UIManager from './UIManager'
 import Bullet from './Bullet'
+import Tool from '../interfaces/Tool'
 
 export default class CharacterController {
     
@@ -74,7 +75,8 @@ export default class CharacterController {
                 //leftMouse = true;
                 if(this.player.selectedItem) {
                     if(this.player.selectedItem.item_type === ItemType.TOOL) {
-                        //this.player.selectedItem.setHold(true)
+                        const tool = this.player.selectedItem as Tool;
+                        tool.setHold(true);
                     }
                     else {
                         this.player.selectedItem.use()
@@ -101,7 +103,10 @@ export default class CharacterController {
         
                 if(this.player.selectedItem) {
                     if(this.player.selectedItem.item_type === ItemType.TOOL) {
-                        //this.player.selectedItem.setHold(false)
+                        if(this.player.selectedItem.item_type === ItemType.TOOL) {
+                            const tool = this.player.selectedItem as Tool;
+                            tool.setHold(false);
+                        }
                     }
                 }
             } else if (event.button === 2) {
