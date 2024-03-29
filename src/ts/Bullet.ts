@@ -2,7 +2,7 @@ import ItemType from "../enums/ItemType"
 
 export default class Bullet {
     
-    public readonly quantity: number
+    public quantity: number
     public readonly name: string
     public readonly item_type: ItemType
     public readonly image: string

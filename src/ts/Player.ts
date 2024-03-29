@@ -1,9 +1,15 @@
 import * as THREE from 'three'
 import { groundLevel, movementSpeed, sprintFactor } from './constants'
-import { PointerLockControls } from 'three/examples/jsm/Addons.js'
 import PhysicsObject from '../interfaces/PhysicsObject'
 import PhysicsManager from './PhysicsManager'
 import CharacterController from './CharacterController'
+import UIManager from './UIManager'
+import Pistol from './Pistol'
+import PlayerInventory from './PlayerInventory'
+import UsableItem from '../interfaces/UsableItem'
+import Bullet from './Bullet'
+
+const ui = UIManager.getInstance()
 
 export default class Player extends THREE.Object3D {
 
@@ -14,24 +20,32 @@ export default class Player extends THREE.Object3D {
     private health: number
     private hunger: number
 
-    private inventory: Object
-    private selectedItem: any
-    private selectedSlot: number
+    public readonly inventory: PlayerInventory
+    public selectedItem: UsableItem | null
+    public selectedSlot: number
 
-    private controller: CharacterController
+    public readonly hotBar: Array<any>
 
-    constructor(camera: THREE.Camera) {
+    public readonly controller: CharacterController
+
+    private scene: THREE.Scene
+
+    constructor(scene: THREE.Scene, camera: THREE.Camera) {
         super()
         this.model = null
         this.camera = camera
         this.health = 100
         this.hunger = 100
 
-        this.inventory = {}
+        this.hotBar = Array(6).fill(null)
+        this.inventory = new PlayerInventory(this.hotBar)
+
         this.selectedItem = null
         this.selectedSlot = -1
         
         this.controller = new CharacterController(this, camera)
+
+        this.scene = scene
 
         this.init()
     }
@@ -40,20 +54,37 @@ export default class Player extends THREE.Object3D {
         const geometry = new THREE.CylinderGeometry(0.5, 0.5, 1.8, 32);
         const material = new THREE.MeshStandardMaterial({color: 0x00ff00});
 
-        
-
-        // this.physicsObject = {
-            
-        // }
-
         this.model = new THREE.Mesh(geometry, material)
-        this.model.position.set(0, groundLevel, 0)
+        this.model.position.set(0, 0, 0)
+
+        const pistol = new Pistol(0, this.camera, this.scene)
+        this.inventory.add(pistol)
+        this.hotBar[0] = pistol
+
+        const bullet = new Bullet(17)
+        this.inventory.add(bullet)
+        this.hotBar[1] = bullet
+
+        ui.initHotBar(this.hotBar)
     }
 
     update(elapsedTime: number, deltaTime: number) {
         this.controller.update(elapsedTime, deltaTime)
-        //this.position.copy(this.camera.position)
-        //this.camera.position.copy(this.position)
-        //this.rotation.copy(this.camera.rotation)
+        
+        if(this.selectedItem) {
+            this.selectedItem.update(elapsedTime, deltaTime)
+        }
+
+        this.inventory.update()
+
+        ui.updateHealth(this.health)
+        ui.updateHotBar(this.hotBar, this.selectedSlot)
+        ui.updatePosition(this.position)
     }
+
+    // updateInventory() {
+    //     this.inventory.forEach((item) => {
+    //         item.update()
+    //     })
+    // }
 }

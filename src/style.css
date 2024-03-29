@@ -4,7 +4,7 @@ html, body {
     overflow: hidden;
     position: relative;
   }
-#infoText {
+#fpsText  {
     position: absolute; /* Position the text relative to the body */
     top: 10px; /* Adjust the distance from the top */
     left: 10px; /* Adjust the distance from the left */

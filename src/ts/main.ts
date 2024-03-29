@@ -20,12 +20,12 @@ world.initialize()
 
 function animate() {
     const deltaTime = clock.getDelta();
-    //console.log(deltaTime)
     const elapsedTime = clock.getElapsedTime()
+
+    world.update(elapsedTime, deltaTime)
 
     requestAnimationFrame(animate)
     renderer.render(scene, camera)
-    world.update(elapsedTime, deltaTime)
 }
 
 animate()

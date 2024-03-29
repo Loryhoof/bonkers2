@@ -1,10 +1,20 @@
 import * as THREE from 'three'
 import ItemType from '../enums/ItemType'
+import UsableItem from '../interfaces/UsableItem'
 import { loadGLB } from './Utils'
+import { adsOffset, handOffset } from './constants'
+import Firearm from '../interfaces/Firearm'
+import Player from './Player'
+import { bullet_impact_sound, pistol_reload_sound, pistol_shoot_sound } from './AudioManager'
+import Bullet from './Bullet'
 
 let raycaster = new THREE.Raycaster()
+let currentPosition = new THREE.Vector3()
+let targetPosition = new THREE.Vector3()
+let hasAppliedRecoil = false
+let lerpFactor = 0.2
 
-export default class Pistol extends THREE.Object3D {
+export default class Pistol extends THREE.Object3D implements Firearm {
 
     public readonly name: string
     public readonly quantity: number
@@ -12,14 +22,18 @@ export default class Pistol extends THREE.Object3D {
     public ammo: number
     public readonly maxAmmo: number
     public readonly item_type: ItemType
-    public model: THREE.Mesh | null
-    public model_slide: THREE.Mesh | null
+    public model: THREE.Mesh | any
+    public model_slide: THREE.Mesh | any
     public readonly image: string
 
     private readonly camera: THREE.Camera
     private readonly scene: THREE.Scene
 
     private isReloading: boolean
+    private isAds: boolean
+
+    private owner: Player | null
+    private isActive: boolean
 
     constructor(
         ammoCount: number,
@@ -39,7 +53,15 @@ export default class Pistol extends THREE.Object3D {
         this.isReloading = false
         this.camera = camera
         this.scene = scene
+        this.isAds = false
+        this.owner = null
+        this.isActive = false
+
         this.init()
+    }
+
+    use() {
+        this.shoot()
     }
 
     async init() {
@@ -49,7 +71,10 @@ export default class Pistol extends THREE.Object3D {
 
         if(this.model && this.model_slide) {
             this.scene.add(this.model)
+            //this.scene.add(this)
         }
+
+        //currentPosition = handOffset.clone()
     }
 
     shoot() {
@@ -85,12 +110,12 @@ export default class Pistol extends THREE.Object3D {
                 //     }
                 // }
 
-                // if (pistol_shoot_sound.isPlaying || bullet_impact_sound.isPlaying) {
-                //     pistol_shoot_sound.stop();
-                //     bullet_impact_sound.stop();
-                // }
+                if (pistol_shoot_sound.isPlaying || bullet_impact_sound.isPlaying) {
+                    pistol_shoot_sound.stop();
+                    bullet_impact_sound.stop()
+                }
 
-                // pistol_shoot_sound.play();
+                pistol_shoot_sound.play()
 
                 const recoilVector = new THREE.Vector3(0,0,1).clone().multiplyScalar(0.05);
                 this.model?.position.add(recoilVector);
@@ -98,21 +123,115 @@ export default class Pistol extends THREE.Object3D {
                 const initialSlidePosition = this.model_slide?.position.clone();
                 this.model_slide?.position.add(new THREE.Vector3(1, 0, 0).clone().multiplyScalar(0.1));
 
-                let initialCameraRotationX = new THREE.Vector3();
+                let initialCameraRotationX
 
-                // if (!hasAppliedRecoil) {
-                //     initialCameraRotationX = camera.rotation.x;
-                //     hasAppliedRecoil = true;
-                //     camera.rotateX(verticalRecoilAmount);
-                // }
+                if (!hasAppliedRecoil) {
+                    initialCameraRotationX = this.camera.rotation.x;
+                    hasAppliedRecoil = true;
+                    this.camera.rotateX(Math.PI / 72);
+                }
 
-                // setTimeout(() => {
-                //     gunModel.slide.position.copy(initialSlidePosition);
-                //     hasAppliedRecoil = false;
-                // }, 50);
+                setTimeout(() => {
+                    this.model_slide?.position.copy(initialSlidePosition);
+                    hasAppliedRecoil = false;
+                }, 50);
 
                 this.ammo -= 1;
             }
         }
+    }
+
+    reload(bullets: Bullet) {
+        if(this.isReloading) {
+            return
+        }
+        //this.ammo = this.maxAmmo
+        this.isReloading = true;
+        let dif = this.maxAmmo - this.ammo;
+
+        let ammo = this.maxAmmo
+
+        if(bullets.quantity < dif) {
+            ammo = bullets.quantity
+            bullets.quantity = 0
+        }
+        else {
+            bullets.quantity = bullets.quantity - dif
+        }
+
+        this.ammo = ammo
+
+        if(pistol_reload_sound.isPlaying) {
+            pistol_reload_sound.stop()
+        }
+
+        pistol_reload_sound.play()
+
+        const recoilVector = new THREE.Vector3(1,0,0).clone().multiplyScalar(0.15);
+        const initialSlidePosition = this.model_slide.position.clone();
+
+        this.model_slide.position.add(recoilVector)
+        
+        setTimeout(() => {
+            this.isReloading = false;
+            this.model_slide.position.copy(initialSlidePosition)
+        }, 800)
+    }
+    
+    ads(bool: boolean) {
+        this.isAds = bool;
+        if (bool) {
+            targetPosition = adsOffset;
+            lerpFactor = 0.2
+        } else {
+            targetPosition = handOffset;
+            lerpFactor = 0.05
+        }
+    }
+
+    setActive(bool: boolean, owner: Player) {
+        this.model.visible = bool
+        this.owner = owner
+        this.isActive = bool
+    }
+
+    update(elapsedTime: number, deltaTime: number) {
+        if (!this.isActive || !this.owner || !this.model) {
+            return;
+        }
+
+        currentPosition.lerp(targetPosition, lerpFactor);
+
+        let target = currentPosition.clone();
+
+        target.applyQuaternion(this.camera.quaternion);
+
+        this.model.position.copy(this.camera.position).add(target);
+        this.model.rotation.copy(this.camera.rotation);
+
+        let frequency = 2; // faster
+        let amplitude = 0.015; // more movement
+
+        if (this.isAds) {
+            frequency = 1
+            amplitude = 0.005;
+        }
+        if(this.owner.controller.isWalking) {
+            frequency = 10
+            amplitude = 0.01
+        }
+        if(this.owner.controller.isSprinting) {
+            frequency = 15
+            amplitude = 0.025
+        }
+
+        if(this.isAds && this.owner.controller.isWalking || this.isAds && this.owner.controller.isSprinting) {
+            frequency = 1
+            amplitude = 0.005
+        }
+
+        let t = Math.sin(elapsedTime * frequency) * amplitude;
+        this.model.position.y += t;
+        this.model.position.z -= t;
     }
 }

@@ -3,7 +3,8 @@
 enum ItemType {
     RESOURCES = "resources",
     AMMO = "ammo",
-    FIREARM = 'firearm'
+    FIREARM = 'firearm',
+    TOOL = 'tool'
 }
 
 export default ItemType;
