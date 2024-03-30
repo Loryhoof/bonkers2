@@ -10,6 +10,10 @@ import Firearm from '../interfaces/Firearm'
 import UIManager from './UIManager'
 import Bullet from './Bullet'
 import Tool from '../interfaces/Tool'
+import { grass_step_sound } from './AudioManager'
+import { randomBetween } from './Utils'
+
+let lastStepPlayed = performance.now();
 
 export default class CharacterController {
     
@@ -62,7 +66,7 @@ export default class CharacterController {
         const physics = PhysicsManager.getInstance()
 
         this.physicsObject = physics.createPlayerCapsule()
-        this.physicsController = physics.createCharacterController()
+        //this.physicsController = physics.createCharacterController()
     }
 
     private initIO() {
@@ -225,6 +229,19 @@ export default class CharacterController {
             return this.keyW || this.keyA || this.keyS || this.keyD
         }
 
+        let current = performance.now()
+
+        let footstepDelay = canSprint() ? 300 : 500;
+
+        if (current - lastStepPlayed > footstepDelay && isGrounded() && isMoving()) {
+            if (grass_step_sound.isPlaying) {
+                grass_step_sound.stop();
+            }
+            grass_step_sound.setDetune(randomBetween(-200, -500))
+            grass_step_sound.play();
+            lastStepPlayed = current; 
+        }
+
         let {x, y, z} = this.physicsObject?.rigidBody.translation()
 
         this.player.position.set(x, y, z)
@@ -261,9 +278,12 @@ export default class CharacterController {
 
         const physics = PhysicsManager.getInstance()
 
-        const displacement = this.velocity.clone().multiplyScalar(deltaTime * 200)
+        const displacement = this.velocity.clone().multiplyScalar(deltaTime * 100)
         
         if(this.physicsObject && this.physicsObject.rigidBody) {
+            if(!isGrounded()) {
+                displacement.add(new THREE.Vector3(0, -9.81, 0).multiplyScalar(deltaTime * 100))
+            }   
             physics.setLinearVelocity(this.physicsObject?.rigidBody, displacement)
         }
 

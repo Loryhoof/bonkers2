@@ -44,10 +44,10 @@ export default class PhysicsManager {
     }
 
     createPlayerCapsule(): PhysicsObject {
-        let rbDesc = RAPIER.RigidBodyDesc.kinematicVelocityBased().setTranslation(0, 2, 0)
+        let rbDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 10, 0).lockRotations() //kinematicVelocityBased
         let rigidBody = this.physicsWorld.createRigidBody(rbDesc)
 
-        let halfHeight = 1.5
+        let halfHeight = 0.2 // weird s
         let radius = 0.275
 
         let capsuleColDesc = RAPIER.ColliderDesc.capsule(halfHeight, radius)

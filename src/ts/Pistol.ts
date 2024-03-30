@@ -123,10 +123,10 @@ export default class Pistol extends THREE.Object3D implements Firearm {
                 const initialSlidePosition = this.model_slide?.position.clone();
                 this.model_slide?.position.add(new THREE.Vector3(1, 0, 0).clone().multiplyScalar(0.1));
 
-                let initialCameraRotationX
+                //let initialCameraRotationX
 
                 if (!hasAppliedRecoil) {
-                    initialCameraRotationX = this.camera.rotation.x;
+                    //initialCameraRotationX = this.camera.rotation.x;
                     hasAppliedRecoil = true;
                     this.camera.rotateX(Math.PI / 72);
                 }

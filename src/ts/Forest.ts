@@ -14,14 +14,25 @@ export default class Forest extends THREE.Object3D {
     async initializeForest(amount: number) {
         const model = await loadGLB('models/tree.glb') as any
 
-        console.log(model)
+        //console.log(model)
 
         for (let i = 0; i < amount; i++) {
             const tree = new Tree(model.scene);
-            tree.scale.set(1, randomBetween(0.4, 1.3), 1)
-            tree.position.set(randomBetween(-50, 50), 0.5, randomBetween(-50, 50))
             this.add(tree)
             this.trees.push(tree);
         }
+
+        console.log(this)
+    }
+
+    update(elapsedTime: number, deltaTime: number) {
+        this.trees.forEach((tree) => {
+            tree.update(elapsedTime, deltaTime)
+
+            if(tree.isDead) {
+                this.trees.splice(this.trees.indexOf(tree), 1)
+                this.remove(tree)
+            }
+        })
     }
 }

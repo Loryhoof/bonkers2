@@ -58,11 +58,11 @@ export default class Player extends THREE.Object3D {
         this.model = new THREE.Mesh(geometry, material)
         this.model.position.set(0, 0, 0)
 
-        const pistol = new Pistol(0, this.camera, this.scene)
+        const pistol = new Pistol(15, this.camera, this.scene)
         this.inventory.add(pistol)
         this.hotBar[0] = pistol
 
-        const bullet = new Bullet(17)
+        const bullet = new Bullet(999)
         this.inventory.add(bullet)
         this.hotBar[1] = bullet
 

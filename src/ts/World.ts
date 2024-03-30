@@ -67,6 +67,8 @@ export default class World {
         ground.rotation.x -= Math.PI/2;
         ground.position.y = 0.5
 
+        this.physics.createFixedBox(ground.position, new THREE.Vector3(1000, 1, 1000))
+
         this.scene.add(ground)
 
         let player = new Player(this.scene, this.camera)
@@ -86,6 +88,7 @@ export default class World {
     spawnTrees() {
         let forest = new Forest(250)
         this.scene.add(forest)
+        this.entities.push(forest)
     }
 
     update(elapsedTime: number, deltaTime: number) {

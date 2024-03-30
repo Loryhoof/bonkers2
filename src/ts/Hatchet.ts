@@ -1,9 +1,11 @@
 import * as THREE from 'three'
 import ItemType from '../enums/ItemType'
-import { loadGLB } from './Utils'
+import { loadGLB, randomFrom } from './Utils'
 import Player from './Player'
 import Tool from '../interfaces/Tool'
 import { handOffset } from './constants'
+import Tree from './Tree'
+import { axeSounds } from './AudioManager'
 
 let raycaster = new THREE.Raycaster()
 let currentPosition = new THREE.Vector3()
@@ -21,7 +23,7 @@ export default class Hatchet extends THREE.Object3D implements Tool {
     private readonly camera: THREE.Camera
     private readonly scene: THREE.Scene
 
-    private owner: Player | null
+    private owner: Player | any
     private isActive: boolean
     private isHold: boolean
     private swinging: boolean
@@ -36,7 +38,7 @@ export default class Hatchet extends THREE.Object3D implements Tool {
         super()
         this.name = "Hatchet"
         this.quantity = 1
-        this.damage = 25
+        this.damage = 10
         this.item_type = ItemType.TOOL
         this.model = null
         this.image = 'items/hatchet.jpg'
@@ -68,32 +70,36 @@ export default class Hatchet extends THREE.Object3D implements Tool {
 
             const intersects = raycaster.intersectObjects(objectsToIntersect, true);
 
-            // if(intersects[0] && intersects[0].distance < 1.5) {
-            //     let obj = intersects[0].object.root;
+            if(intersects[0] && intersects[0].distance < 1.5) {
+                let obj = intersects[0].object.parent;
+
+                if(!(obj instanceof Tree)) {
+                    return
+                }
                 
-            //     obj.damage(this.damage, this.item_type)
+                obj.damage(this.damage, this.item_type, this.owner)
 
-            //     const point = intersects[0].point;
+                const point = intersects[0].point;
 
-            //     const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-            //     const material = new THREE.MeshStandardMaterial({ color: 0x000000 });
-            //     const cube = new THREE.Mesh(geometry, material);
-            //     cube.position.copy(point);
-            //     cube.ignoreRayHit = true
-            //     scene.add(cube)
+                const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+                const material = new THREE.MeshStandardMaterial({ color: 0x000000 });
+                const cube = new THREE.Mesh(geometry, material);
+                cube.position.copy(point);
+                //cube.ignoreRayHit = true
+                this.scene.add(cube)
 
-            //     setTimeout(() => {
-            //         scene.remove(cube)
-            //     }, 5000)
+                setTimeout(() => {
+                    this.scene.remove(cube)
+                }, 5000)
 
-            //     let audio = randomFrom(axeSounds)
+                let audio = randomFrom(axeSounds)
 
-            //     if(audio.isPlaying) {
-            //         audio.stop()
-            //     }
+                if(audio.isPlaying) {
+                    audio.stop()
+                }
 
-            //     audio.play()
-            // }
+                audio.play()
+            }
             
         }, this.hitClip.duration * 500)
 
