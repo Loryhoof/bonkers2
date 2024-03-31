@@ -73,6 +73,7 @@ export default class Pistol extends THREE.Object3D implements Firearm {
             this.scene.add(this.model)
             //this.scene.add(this)
         }
+        this.model.visible = false
 
         //currentPosition = handOffset.clone()
     }

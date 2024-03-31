@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import RAPIER, { Collider, KinematicCharacterController, RigidBody } from '@dimforge/rapier3d';
+import RAPIER, { Collider, KinematicCharacterController, QueryFilterFlags, RigidBody } from '@dimforge/rapier3d';
+
+let ray = new RAPIER.Ray(new RAPIER.Vector3(0,0,0), new RAPIER.Vector3(0,0,0))
+
+let DOWN = new RAPIER.Vector3(0, -1, 0)
 
 interface PhysicsObject {
     rigidBody: RAPIER.RigidBody;
@@ -47,7 +51,7 @@ export default class PhysicsManager {
         let rbDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 10, 0).lockRotations() //kinematicVelocityBased
         let rigidBody = this.physicsWorld.createRigidBody(rbDesc)
 
-        let halfHeight = 0.2 // weird s
+        let halfHeight = 1.2 // weird s
         let radius = 0.275
 
         let capsuleColDesc = RAPIER.ColliderDesc.capsule(halfHeight, radius)
@@ -61,6 +65,10 @@ export default class PhysicsManager {
         return controller
     }
 
+    intersectShape(shapePos: RAPIER.Vector3, shapeRot: RAPIER.Rotation, shape: RAPIER.Shape, collisionGroup: number) {
+        return this.physicsWorld.intersectionWithShape(shapePos, shapeRot, shape, undefined, collisionGroup)     
+    }
+
     moveCharacter(controller: KinematicCharacterController, collider: Collider, rigidBody: RigidBody, translation: RAPIER.Vector3 | THREE.Vector3) {
         controller.computeColliderMovement(
             collider,
@@ -70,6 +78,23 @@ export default class PhysicsManager {
         let correctedMovement = controller.computedMovement();
     
         this.setLinearVelocity(rigidBody, correctedMovement)
+    }
+
+    raycast(origin: THREE.Vector3, dir: THREE.Vector3, rb: RigidBody) {
+
+        ray.origin = origin
+        ray.dir = dir
+
+        let maxToi = 4.0;
+        let solid = false;
+
+        let hit = this.physicsWorld.castRay(ray, maxToi, solid, undefined, undefined, undefined, rb);
+
+        if(hit !== null) {
+            let hitPoint = ray.pointAt(hit.toi);
+            return origin.distanceTo(hitPoint)
+        }
+        return null
     }
 
     setLinearVelocity(rigidBody: RigidBody, velocity: RAPIER.Vector3 | THREE.Vector3) {

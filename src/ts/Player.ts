@@ -9,6 +9,7 @@ import PlayerInventory from './PlayerInventory'
 import UsableItem from '../interfaces/UsableItem'
 import Bullet from './Bullet'
 import Hatchet from './Hatchet'
+import Blueprint from './Blueprint'
 
 const ui = UIManager.getInstance()
 
@@ -69,6 +70,10 @@ export default class Player extends THREE.Object3D {
         const hatchet = new Hatchet(this.camera, this.scene)
         this.inventory.add(hatchet)
         this.hotBar[2] = hatchet
+
+        const blueprint = new Blueprint(this.camera, this.scene)
+        this.inventory.add(blueprint)
+        this.hotBar[3] = blueprint
 
         ui.initHotBar(this.hotBar)
     }

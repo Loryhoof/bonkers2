@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { PointerLockControls } from 'three/examples/jsm/Addons.js'
 import PhysicsObject from '../interfaces/PhysicsObject'
-import { groundLevel, movementSpeed, sprintFactor } from './constants'
+import { FLOOR_DISTANCE, groundLevel, movementSpeed, sprintFactor } from './constants'
 import Player from './Player'
 import PhysicsManager from './PhysicsManager'
 import RAPIER from '@dimforge/rapier3d'
@@ -11,7 +11,7 @@ import UIManager from './UIManager'
 import Bullet from './Bullet'
 import Tool from '../interfaces/Tool'
 import { grass_step_sound } from './AudioManager'
-import { randomBetween } from './Utils'
+import { isApproximatelyEqual, randomBetween } from './Utils'
 
 let lastStepPlayed = performance.now();
 
@@ -37,6 +37,8 @@ export default class CharacterController {
 
     private player: Player
 
+    private grounded: boolean
+
     constructor(player: Player ,camera: THREE.Camera) {
         this.isWalking = false
         this.isSprinting = false
@@ -53,6 +55,8 @@ export default class CharacterController {
 
         this.physicsObject = null
         this.physicsController = null
+
+        this.grounded = false
 
         this.controls = new PointerLockControls(camera, document.body)
 
@@ -151,11 +155,11 @@ export default class CharacterController {
                     }
                 }
             }
-            // if (keyPressed === " " && !isJumping && isGrounded()) {
-            //     //keySpace = true;
-            //     //this.isJumping = true
-            //     //jumpHeight = 0
-            // }
+            if (keyPressed === " ") {
+                this.keySpace = true;
+                //this.isJumping = true
+                //jumpHeight = 0
+            }
             if (keyPressed === "shift") {
                 this.keyShift = true;
             }
@@ -203,7 +207,7 @@ export default class CharacterController {
                 this.keyD = false;
             }
             if (keyPressed === " ") {
-                //keySpace = false;
+                this.keySpace = false;
             }
             if (keyPressed === "shift") {
                 this.keyShift = false;
@@ -222,7 +226,8 @@ export default class CharacterController {
         }
         
         const isGrounded = () => {
-            return this.player.position.y <= groundLevel
+            //return this.player.position.y <= groundLevel
+            return this.grounded
           }
 
         const isMoving = () => {
@@ -276,16 +281,17 @@ export default class CharacterController {
             this.velocity.add(right.multiplyScalar(-speed * 60));
         }
 
+        if (this.keySpace && isGrounded()) {
+            this.physicsObject?.rigidBody.applyImpulse(new THREE.Vector3(0, 2, 0), true)
+        }
+
         const physics = PhysicsManager.getInstance()
 
         const displacement = this.velocity.clone().multiplyScalar(deltaTime * 100)
-        
-        if(this.physicsObject && this.physicsObject.rigidBody) {
-            if(!isGrounded()) {
-                displacement.add(new THREE.Vector3(0, -9.81, 0).multiplyScalar(deltaTime * 100))
-            }   
-            physics.setLinearVelocity(this.physicsObject?.rigidBody, displacement)
-        }
+        const linVel = this.physicsObject.rigidBody.linvel()
+        displacement.y = linVel.y
+
+        physics.setLinearVelocity(this.physicsObject?.rigidBody, displacement)
 
         this.isWalking = isMoving()
         this.isSprinting = isMoving() && this.keyShift
@@ -319,7 +325,25 @@ export default class CharacterController {
         ui.updateHotBar(this.player.hotBar, this.player.selectedSlot)
     }
 
+    checkGround() {
+        if(!this.physicsObject) {
+            this.grounded = false
+            return
+        }
+
+        let distance = PhysicsManager.getInstance().raycast(this.player.position, new THREE.Vector3(0, -1, 0), this.physicsObject.rigidBody)
+
+        if(distance) {
+            this.grounded = distance <= FLOOR_DISTANCE
+            //console.log(distance)
+        }
+        else {
+            this.grounded = false
+        }
+    }
+
     update(elapsedTime: number, deltaTime: number) {
+        this.checkGround()
         this.handleMovement(elapsedTime, deltaTime)
     }
 }

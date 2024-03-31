@@ -30,12 +30,14 @@ export default class World {
 
     async initialize() {
 
-        const geometry = new THREE.BoxGeometry(1, 1, 1)
+        const geometry = new THREE.BoxGeometry(3, 3, 3)
         const material = new THREE.MeshStandardMaterial({color: 0xff0000})
 
         let cube = new THREE.Mesh(geometry, material)
         cube.position.z = -15
-        cube.position.y = 0.5
+        cube.position.y = 1
+
+        this.physics.createFixedBox(cube.position, new THREE.Vector3(1.5,1.5,1.5))
 
         const light = new THREE.DirectionalLight(0xffffff);
         // light.position.set(0, 2, 2);
@@ -67,7 +69,7 @@ export default class World {
         ground.rotation.x -= Math.PI/2;
         ground.position.y = 0.5
 
-        this.physics.createFixedBox(ground.position, new THREE.Vector3(1000, 1, 1000))
+        this.physics.createFixedBox(ground.position, new THREE.Vector3(1000, ground.position.y - 0.5, 1000))
 
         this.scene.add(ground)
 

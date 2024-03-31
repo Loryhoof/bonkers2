@@ -128,6 +128,7 @@ export default class Hatchet extends THREE.Object3D implements Tool {
 
         this.hitClip = THREE.AnimationClip.findByName( clips, 'hit' );
         this.hitAnim = this.mixer.clipAction( this.hitClip );
+        this.model.visible = false
     }
 
     setActive(bool: boolean, owner: Player) {

@@ -29,7 +29,7 @@ export default class Tree extends THREE.Object3D {
         this.health = 100
         this.canTakeDamage = true
         this.dying = false
-        this.hitBox = new HitBox(this, new THREE.Vector3(0.4, 6, 0.4))
+        this.hitBox = new HitBox(this, new THREE.Vector3(0.4, 10, 0.4))
         this.model = model.clone()
 
         this.time = 0

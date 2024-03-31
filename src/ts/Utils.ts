@@ -10,6 +10,10 @@ export const randomFrom = (arr: Array<any>) => {
     return arr[Math.floor(Math.random()*arr.length)];
 }
 
+export const isApproximatelyEqual = (value: number, target: number, tolerance: number) => {
+    return Math.abs(value - target) <= tolerance;
+}
+
 export const loadGLB = async (modelPath: string) => {
     return new Promise((resolve, reject) => {
         loader.load(
