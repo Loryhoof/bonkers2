@@ -5,6 +5,7 @@ import SelectedBuildType from "../enums/SelectedBuildType"
 import { BUILDING_LAYER } from "./constants"
 import PhysicsManager from "./PhysicsManager"
 import PhysicsObject from "../interfaces/PhysicsObject"
+import { loadGLB } from "./Utils"
 
 const LEFT = new THREE.Vector3(-1.5, 0, 0)
 const RIGHT = new THREE.Vector3(1.5, 0, 0)
@@ -36,6 +37,8 @@ export default class Floor extends THREE.Object3D {
         this.connectors[2] = new Connector(scene, ConnectorPosition.left, SelectedBuildType.floor)
         this.connectors[3] = new Connector(scene, ConnectorPosition.right, SelectedBuildType.floor)
 
+        this.add(this.connectors[0], this.connectors[1], this.connectors[2], this.connectors[3])
+
         //console.log(this.connectors)
       
 
@@ -48,10 +51,21 @@ export default class Floor extends THREE.Object3D {
 
     init() {
 
+        //let mod = await loadGLB('models/floor.glb') as any
+
+        const textureLoader = new THREE.TextureLoader();
+
+        const groundTexture1 = textureLoader.load('wood.jpg');
+        groundTexture1.wrapS = THREE.RepeatWrapping; // Repeat the texture in S direction
+        groundTexture1.wrapT = THREE.RepeatWrapping; // Repeat the texture in T direction
+
         const geometry = new THREE.BoxGeometry(scale.x, scale.y, scale.z);
-        const material = new THREE.MeshStandardMaterial({ color: 0xeb8436, transparent: true, opacity: 1 });
+        const material = new THREE.MeshStandardMaterial({ color: 0x804b24, transparent: true, opacity: 1, map: groundTexture1 });
         
-        const model = new THREE.Mesh(geometry, material);
+        let model = new THREE.Mesh(geometry, material);
+
+        //model = mod.scene.clone()
+        //console.log(model)
 
         this.add(model)
 
@@ -72,7 +86,7 @@ export default class Floor extends THREE.Object3D {
             sphere.userData.layer = BUILDING_LAYER;
             sphere.userData.connector = connector
             sphere.userData.class = this
-            sphere.visible = true
+            sphere.visible = false
             
             model.add(sphere)
             connector.userData.sphere = sphere

@@ -56,6 +56,7 @@ export default class Connector extends THREE.Object3D {
         //console.log(a)
         //console.log(this)
         //console.log(this.userData.sphere.userData.class)
+        console.log(this)
         let pos0 = this.userData.sphere.position.clone()
         let pos1 = this.userData.sphere.userData.class.position.clone()
 

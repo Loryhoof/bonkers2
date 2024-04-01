@@ -290,8 +290,15 @@ export default class CharacterController {
             this.velocity.add(right.multiplyScalar(-speed * 60));
         }
 
-        if (this.keySpace && isGrounded()) {
-            this.physicsObject?.rigidBody.applyImpulse(new THREE.Vector3(0, 2, 0), true)
+
+        // crouch
+        if (!this.keyShift && this.keySpace && isGrounded()) {
+            this.physicsObject?.rigidBody.applyImpulse(new THREE.Vector3(0, 0.5, 0), true)
+        }
+
+        // jump
+        if (this.keyShift && this.keySpace && isGrounded()) {
+            this.physicsObject?.rigidBody.applyImpulse(new THREE.Vector3(0, 0.7, 0), true)
         }
 
         const physics = PhysicsManager.getInstance()

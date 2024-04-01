@@ -37,8 +37,8 @@ export default class PhysicsManager {
         return { rigidBody, collider };
     }
 
-    createFixedBox(position: THREE.Vector3, scale: THREE.Vector3): PhysicsObject {
-        const rbDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(position.x, position.y, position.z)
+    createFixedBox(position: THREE.Vector3, scale: THREE.Vector3, rotation: THREE.Quaternion = new THREE.Quaternion()): PhysicsObject {
+        const rbDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(position.x, position.y, position.z).setRotation({w: rotation.w, x: rotation.x, y: rotation.y, z: rotation.z})
         const rigidBody = this.physicsWorld.createRigidBody(rbDesc);
 
         const colDesc = RAPIER.ColliderDesc.cuboid(scale.x, scale.y, scale.z);
@@ -51,7 +51,7 @@ export default class PhysicsManager {
         let rbDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 10, 0).lockRotations() //kinematicVelocityBased
         let rigidBody = this.physicsWorld.createRigidBody(rbDesc)
 
-        let halfHeight = 1.2 // weird s
+        let halfHeight = 1.1 // weird s
         let radius = 0.275
 
         let capsuleColDesc = RAPIER.ColliderDesc.capsule(halfHeight, radius)

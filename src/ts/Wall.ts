@@ -8,10 +8,10 @@ import PhysicsObject from "../interfaces/PhysicsObject"
 
 let TOP = new THREE.Vector3(0, 0, -1.5)
 let BOTTOM = new THREE.Vector3(0, 0, 1.5)
-let LEFT = new THREE.Vector3(0, 1.5, 0)
-let RIGHT = new THREE.Vector3(0, -1.5, 0)
+let LEFT = new THREE.Vector3(0, 1.75, 0)
+let RIGHT = new THREE.Vector3(0, -1.75, 0)
 
-const scale = new THREE.Vector3(0.5, 3, 3)
+const scale = new THREE.Vector3(0.5, 3.5, 3)
 
 let positions = [
     LEFT,
@@ -49,18 +49,28 @@ export default class Wall extends THREE.Object3D {
         this.connectors[2] = new Connector(scene, ConnectorPosition.left, SelectedBuildType.wall)
         this.connectors[3] = new Connector(scene, ConnectorPosition.right, SelectedBuildType.wall)
 
+        this.add(this.connectors[0], this.connectors[1], this.connectors[2], this.connectors[3])
+
 
         this.init()
     }
 
     cook() {
-        this.physicsObject = PhysicsManager.getInstance().createFixedBox(this.position, new THREE.Vector3(scale.x / 2, scale.y / 2, scale.z / 2))
+        this.physicsObject = PhysicsManager.getInstance().createFixedBox(this.position, new THREE.Vector3(scale.x / 2, scale.y / 2, scale.z / 2), this.quaternion)
     }
 
     init() {
 
+        const textureLoader = new THREE.TextureLoader();
+
+        const groundTexture1 = textureLoader.load('wood2.jpg');
+        groundTexture1.wrapS = THREE.RepeatWrapping; // Repeat the texture in S direction
+        groundTexture1.wrapT = THREE.RepeatWrapping; // Repeat the texture in T direction
+        groundTexture1.repeat.set(2, 2);
+
+
         const geometry = new THREE.BoxGeometry(scale.x, scale.y, scale.z);
-        const material = new THREE.MeshStandardMaterial({ color: 0xeb8436, transparent: true, opacity: 1 });
+        const material = new THREE.MeshStandardMaterial({ color: 0x945a2e, transparent: true, opacity: 1, map: groundTexture1 });
         
         const model = new THREE.Mesh(geometry, material);
 
@@ -87,7 +97,7 @@ export default class Wall extends THREE.Object3D {
             sphere.userData.layer = BUILDING_LAYER;
             sphere.userData.connector = connector
             sphere.userData.class = this
-            sphere.visible = true
+            sphere.visible = false
             
             model.add(sphere)
             connector.userData.sphere = sphere
