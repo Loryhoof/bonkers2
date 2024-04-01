@@ -12,7 +12,7 @@ export default class HitBox {
         const geometry = new THREE.BoxGeometry( scale.x, scale.y, scale.z );
         const material = new THREE.MeshBasicMaterial( { color: 0x00ff00, transparent: true, opacity: 0.5 } );
         const mesh = new THREE.Mesh( geometry, material );
-        mesh.visible = true
+        mesh.visible = false
         root.add( mesh );
     }
 }

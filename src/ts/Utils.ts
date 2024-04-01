@@ -1,4 +1,5 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'three'
 
 const loader = new GLTFLoader();
 
@@ -12,6 +13,10 @@ export const randomFrom = (arr: Array<any>) => {
 
 export const isApproximatelyEqual = (value: number, target: number, tolerance: number) => {
     return Math.abs(value - target) <= tolerance;
+}
+
+export const getWorldPos = (localPosition: THREE.Vector3, worldParent: THREE.Group) => {
+    return localPosition.clone().applyMatrix4(worldParent.matrixWorld);
 }
 
 export const loadGLB = async (modelPath: string) => {

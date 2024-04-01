@@ -88,7 +88,7 @@ export default class World {
     }
 
     spawnTrees() {
-        let forest = new Forest(250)
+        let forest = new Forest(100)
         this.scene.add(forest)
         this.entities.push(forest)
     }

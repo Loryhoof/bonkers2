@@ -12,6 +12,7 @@ import Bullet from './Bullet'
 import Tool from '../interfaces/Tool'
 import { grass_step_sound } from './AudioManager'
 import { isApproximatelyEqual, randomBetween } from './Utils'
+import Building from '../interfaces/Building'
 
 let lastStepPlayed = performance.now();
 
@@ -152,6 +153,14 @@ export default class CharacterController {
                         if(this.player.inventory.inventory["Bullet"]) {
                             firearm.reload(this.player.inventory.inventory['Bullet'] as Bullet)
                         }
+                    }
+                }
+            }
+            if (keyPressed === "q") {
+                if(this.player.selectedItem) {
+                    if(this.player.selectedItem.item_type == ItemType.BUILDING) {
+                        const bp = this.player.selectedItem as Building;
+                        bp.switch()
                     }
                 }
             }

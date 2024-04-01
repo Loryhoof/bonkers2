@@ -6,6 +6,8 @@ import { bullet_impact_sound } from './AudioManager'
 import PhysicsManager from './PhysicsManager'
 import Floor from './Floor'
 import BuildingManager from './BuildingManager'
+import Building from '../interfaces/Building'
+import SelectedBuildType from '../enums/SelectedBuildType'
 
 let raycaster = new THREE.Raycaster()
 
@@ -13,7 +15,7 @@ let maxPlaceDistance = 10
 
 let size = new THREE.Vector3(1,5, 5)
 
-export default class Blueprint {
+export default class Blueprint implements Building {
 
     public readonly name: string
     public readonly quantity: number
@@ -50,6 +52,10 @@ export default class Blueprint {
         this.builder = new BuildingManager(camera, scene)
 
         this.init()
+    }
+
+    switch() {
+        this.builder.shuffleBuildType()
     }
 
     use() {
@@ -96,13 +102,15 @@ export default class Blueprint {
         this.objectPreview = new THREE.Mesh(geometry, previewMaterial);
         this.objectToPlace = new THREE.Mesh(geometry, material);
 
-        this.scene.add(this.objectPreview)
+        //this.scene.add(this.objectPreview)
         this.objectPreview.visible = false
         
     }
 
     setActive(bool: boolean, owner: Player) {
         //this.model.visible = bool
+        this.builder.setActive(bool)
+
         this.owner = owner
         this.isActive = bool
         this.objectPreview.visible = bool

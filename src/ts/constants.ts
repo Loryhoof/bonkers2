@@ -11,3 +11,4 @@ export const adsOffset = new THREE.Vector3(0, -0.215, -0.4)
 export const jumpVelocity = 15;
 export const maxJumpHeight = 2;
 export const FLOOR_DISTANCE = 1.48
+export const BUILDING_LAYER = 3

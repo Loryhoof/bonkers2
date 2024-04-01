@@ -65,7 +65,7 @@ export default class PhysicsManager {
         return controller
     }
 
-    intersectShape(shapePos: RAPIER.Vector3, shapeRot: RAPIER.Rotation, shape: RAPIER.Shape, collisionGroup: number) {
+    intersectShape(shapePos: RAPIER.Vector3, shapeRot: RAPIER.Rotation, shape: RAPIER.Shape, collisionGroup: number | undefined) {
         return this.physicsWorld.intersectionWithShape(shapePos, shapeRot, shape, undefined, collisionGroup)     
     }
 
