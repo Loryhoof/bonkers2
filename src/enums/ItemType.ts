@@ -5,7 +5,8 @@ enum ItemType {
     AMMO = "ammo",
     FIREARM = 'firearm',
     TOOL = 'tool',
-    BUILDING = 'building'
+    BUILDING = 'building',
+    INTERACTABLE = 'interactable'
 }
 
 export default ItemType;

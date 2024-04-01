@@ -8,6 +8,9 @@ import RAPIER from '@dimforge/rapier3d';
 import ConnectorPosition from '../enums/ConnectorPosition';
 import { BUILDING_LAYER } from './constants';
 import { getWorldPos } from './Utils';
+import Stairs from './Stairs';
+import Door from './Door';
+import EntityManager from './EntityManager';
 
 const raycaster = new THREE.Raycaster()
 
@@ -38,15 +41,24 @@ export default class BuildingManager {
     private isPreviewInValidPosition: boolean = false
     private modelParent: THREE.Group = new THREE.Group
 
+    private overrideRotation: boolean = false
+
     private camera: THREE.Camera
     private scene: THREE.Scene
 
+    private buildingObjects: Array<any> = []
+    private buildIndex: number = 0
+
     constructor(
         camera: THREE.Camera,
-        scene: THREE.Scene
+        scene: THREE.Scene,
     ) {
         this.camera = camera
         this.scene = scene
+
+        this.buildingObjects.push(new Floor(scene))
+        this.buildingObjects.push(new Wall(scene))
+        this.buildingObjects.push(new Door(scene))
    
     }
 
@@ -57,13 +69,38 @@ export default class BuildingManager {
         }
     }
 
+    selectNext() {
+        // Increment the currentIndex
+        if(this.previewBuildObject) {
+            this.scene.remove(this.previewBuildObject)
+            this.previewBuildObject = null
+        }
+        this.buildIndex++;
+
+        // If the currentIndex exceeds the array length, wrap around to the beginning
+        if (this.buildIndex >= this.buildingObjects.length) {
+            this.buildIndex = 0;
+        }
+
+        // Deselect all objects
+        //this.buildingObjects.forEach(obj => obj.deselect());
+
+        // Select the current object
+        //const selectedObject = this.buildingObjects[this.buildIndex];
+        //this.previewBuildObject = selectedObject
+        //this.currentBuildType = selectedObject.buildType
+        //selectedObject.select();
+    }
+
     public shuffleBuildType() {
-        if(this.currentBuildType == SelectedBuildType.floor ) {
-            this.setBuildType(SelectedBuildType.wall)
-        }
-        else if(this.currentBuildType == SelectedBuildType.wall) {
-            this.setBuildType(SelectedBuildType.floor)
-        }
+        this.selectNext()
+
+        // if(this.currentBuildType == SelectedBuildType.floor ) {
+        //     this.setBuildType(SelectedBuildType.wall)
+        // }
+        // else if(this.currentBuildType == SelectedBuildType.wall) {
+        //     this.setBuildType(SelectedBuildType.floor)
+        // }
     }
 
     public setBuildType(type: SelectedBuildType) {
@@ -77,6 +114,7 @@ export default class BuildingManager {
 
     public setActive(bool: boolean) {
         this.isBuilding = bool
+        this.resetSettings()
         this.updateVis(bool)
     }
 
@@ -85,13 +123,49 @@ export default class BuildingManager {
             this.previewBuildObject.visible = bool
     }
 
+    private resetSettings() {
+        if(this.previewBuildObject) {
+            this.scene.remove(this.previewBuildObject)
+            this.previewBuildObject = null
+        }
+        this.overrideRotation = false
+    }
+
     build() {
         this.placeBuild()
     }
 
+    rotate() {
+        if(!this.previewBuildObject) {
+            return
+        }
+
+        if(this.currentBuildType != SelectedBuildType.wall) {
+            return
+        }
+
+        this.overrideRotation = true
+        this.previewBuildObject.rotateY(Math.PI / 2)
+
+        // const newRotation = this.previewBuildObject.rotation.clone();
+        //     newRotation.set(
+        //         newRotation.x,
+        //         connector.rotation.y,
+        //         newRotation.z,
+        //         newRotation.w
+        //     );
+        //     this.previewBuildObject.rotation.copy(newRotation);
+    }
+
     private ghostifyModel(modelParent: THREE.Mesh, previewMaterial: THREE.Material) {
+        //console.log(modelParent)
+        
         if(previewMaterial != null && modelParent.material != previewMaterial) {
-            modelParent.material = previewMaterial
+            //modelParent.material = previewMaterial
+            modelParent.traverse((child: any) => {
+                
+                child.material = previewMaterial
+            })
         }
         else {
             // disable colliders
@@ -177,7 +251,7 @@ export default class BuildingManager {
         this.previewBuildObject.position.copy(con.clone().sub(off))
 
 
-        if (this.currentBuildType == SelectedBuildType.wall) {
+        if (this.currentBuildType == SelectedBuildType.wall && !this.overrideRotation) {
             const newRotation = this.previewBuildObject.rotation.clone();
             newRotation.set(
                 newRotation.x,
@@ -186,11 +260,10 @@ export default class BuildingManager {
                 newRotation.w
             );
             this.previewBuildObject.rotation.copy(newRotation);
-
         }
 
         //console.log(this.previewBuildObject)
-        this.ghostifyModel(this.previewBuildObject.children[4], previewMaterialValid)
+        this.ghostifyModel(this.previewBuildObject, previewMaterialValid)
     }
 
     private previewSeparateBuild() {
@@ -235,7 +308,7 @@ export default class BuildingManager {
 
         if(bestConnector == null || this.currentBuildType == SelectedBuildType.floor && bestConnector.isConnectedToFloor || 
            bestConnector == null || this.currentBuildType == SelectedBuildType.wall && bestConnector.isConnectedToWall) {
-            this.ghostifyModel(this.previewBuildObject.children[4], previewMaterialInvalid)
+            this.ghostifyModel(this.previewBuildObject, previewMaterialInvalid)
             this.isPreviewInValidPosition = false
             console.log("Bad")
             return
@@ -279,7 +352,7 @@ export default class BuildingManager {
         if(intersectedObjects.length > 0) {
             this.previewConnectBuild(intersectedObjects)
         } else {
-            this.ghostifyModel(this.previewBuildObject.children[4], previewMaterialInvalid)
+            this.ghostifyModel(this.previewBuildObject, previewMaterialInvalid)
             this.previewSeparateBuild()
         }
 
@@ -316,15 +389,36 @@ export default class BuildingManager {
     private createPreviewPrefab(currentBuild: null) {
 
         if(this.previewBuildObject == null) {
+            
             //this.previewBuildObject = currentBuild.clone()
             ///this.currentBuildType = SelectedBuildType.floor
-            if(this.currentBuildType == SelectedBuildType.floor) {
-                this.previewBuildObject = new Floor(this.scene)
+            // if(this.currentBuildType == SelectedBuildType.floor) {
+            //     this.previewBuildObject = new Floor(this.scene)
+            //     console.log(this.previewBuildObject)
+            // }
+
+            // if(this.currentBuildType == SelectedBuildType.wall) {
+            //     this.previewBuildObject = new Door(this.scene)
+            // }   
+
+            //console.log(this.buildIndex)
+
+            switch(this.buildIndex) {
+                case 0:
+                    this.previewBuildObject = new Floor(this.scene)
+                    break
+                case 1:
+                    this.previewBuildObject = new Wall(this.scene)
+                    break
+                case 2:
+                    this.previewBuildObject = new Door(this.scene)
+                    break
             }
 
-            if(this.currentBuildType == SelectedBuildType.wall) {
-                this.previewBuildObject = new Wall(this.scene)
-            }
+            //console.log(this.previewBuildObject)
+
+            //this.previewBuildObject = this.buildingObjects[this.buildIndex]
+            this.currentBuildType = this.previewBuildObject.buildType
 
             this.scene.add(this.previewBuildObject)
         }
@@ -357,26 +451,40 @@ export default class BuildingManager {
     private placeBuild() {
         //console.log(this.previewBuildObject, this.isPreviewInValidPosition)
 
-        console.log(this.currentBuildType, "isvalid:", this.isPreviewInValidPosition)
+        //console.log(this.currentBuildType, "isvalid:", this.isPreviewInValidPosition)
         if(this.isBuilding && this.previewBuildObject && this.isPreviewInValidPosition) {
             //let obj = this.getCurrentBuild() as any
 
             let obj = this.previewBuildObject
 
+            switch(this.buildIndex) {
+                case 0:
+                    obj = new Floor(this.scene)
+                    break
+                case 1:
+                    obj = new Wall(this.scene)
+                    break
+                case 2:
+                    obj = new Door(this.scene)
+                    break
+            }
+
             //console.log(this.currentBuildType)
 
-            if(this.currentBuildType == SelectedBuildType.floor) {
-                obj = new Floor(this.scene)
-            }
+            // if(this.currentBuildType == SelectedBuildType.floor) {
+            //     obj = new Floor(this.scene)
+            // }
 
-            if(this.currentBuildType == SelectedBuildType.wall) {
-                obj = new Wall(this.scene)
-            }
+            // if(this.currentBuildType == SelectedBuildType.wall) {
+            //     obj = new Door(this.scene)
+            // }
             //let obj = this.previewBuildObject
             //console.log(obj)
             this.scene.add(obj)
+            EntityManager.getInstance().add(obj)
             obj.position.copy(this.previewBuildObject.position)
             obj.quaternion.copy(this.previewBuildObject.quaternion)
+            //obj.visible = true
 
             //this.scene.remove(this.previewBuildObject)
             //this.previewBuildObject = null

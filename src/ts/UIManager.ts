@@ -6,15 +6,21 @@ const fpsText = document.getElementById("fpsText") as HTMLElement
 const hotbarItems = document.querySelectorAll('.hotBarItem') as HTMLElement | any
 const healthSlider = document.getElementById('healthSlider') as HTMLElement
 
+const interactParent = document.getElementById("interact") as HTMLElement
+const interactText = document.getElementById("interact-text") as HTMLElement
+
 let prevTime = 0
 let frames = 0
 
 export default class UIManager {
     private fps: number
     private static instance: UIManager
+    private interactOn: boolean = false
+    private interactTextToDisplay: string = ''
 
     constructor() {
         this.fps = 0
+        this.init()
     }
 
     public static getInstance(): UIManager {
@@ -22,6 +28,23 @@ export default class UIManager {
             UIManager.instance = new UIManager()
         }
         return UIManager.instance
+    }
+
+    init() {
+        interactParent.style.display = 'none'
+    }
+
+    setInteractText(enabled: boolean, txt: string = '') {
+        this.interactOn = enabled
+
+        if(enabled) {
+            interactParent.style.display = 'flex'
+        }
+        else {
+            interactParent.style.display = 'none'
+        }
+
+        interactText.innerHTML = txt
     }
 
     initHotBar(hotBar: any) {

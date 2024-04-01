@@ -13,6 +13,11 @@ export default class HitBox {
         const material = new THREE.MeshBasicMaterial( { color: 0x00ff00, transparent: true, opacity: 0.5 } );
         const mesh = new THREE.Mesh( geometry, material );
         mesh.visible = false
+
+        mesh.traverse((child) => {
+            child.userData.class = root
+        })
+        
         root.add( mesh );
     }
 }

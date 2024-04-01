@@ -45,7 +45,7 @@ export default class Player extends THREE.Object3D {
         this.selectedItem = null
         this.selectedSlot = -1
         
-        this.controller = new CharacterController(this, camera)
+        this.controller = new CharacterController(this, camera, scene)
 
         this.scene = scene
 

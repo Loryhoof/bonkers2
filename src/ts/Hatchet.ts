@@ -6,6 +6,7 @@ import Tool from '../interfaces/Tool'
 import { handOffset } from './constants'
 import Tree from './Tree'
 import { axeSounds } from './AudioManager'
+import Wall from './Wall'
 
 let raycaster = new THREE.Raycaster()
 let currentPosition = new THREE.Vector3()
@@ -73,6 +74,8 @@ export default class Hatchet extends THREE.Object3D implements Tool {
             if(intersects[0] && intersects[0].distance < 1.5) {
                 let obj = intersects[0].object.parent;
 
+                console.log(obj)
+
                 if(!(obj instanceof Tree)) {
                     return
                 }
@@ -85,8 +88,6 @@ export default class Hatchet extends THREE.Object3D implements Tool {
                 const material = new THREE.MeshStandardMaterial({ color: 0x000000 });
                 const cube = new THREE.Mesh(geometry, material);
                 cube.position.copy(point);
-                //cube.ignoreRayHit = true
-                this.scene.add(cube)
 
                 setTimeout(() => {
                     this.scene.remove(cube)

@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { PointerLockControls } from 'three/examples/jsm/Addons.js'
 import PhysicsObject from '../interfaces/PhysicsObject'
-import { FLOOR_DISTANCE, groundLevel, movementSpeed, sprintFactor } from './constants'
+import { FLOOR_DISTANCE, INTERACT_DISTANCE, groundLevel, movementSpeed, sprintFactor } from './constants'
 import Player from './Player'
 import PhysicsManager from './PhysicsManager'
 import RAPIER from '@dimforge/rapier3d'
@@ -10,11 +10,14 @@ import Firearm from '../interfaces/Firearm'
 import UIManager from './UIManager'
 import Bullet from './Bullet'
 import Tool from '../interfaces/Tool'
-import { grass_step_sound } from './AudioManager'
-import { isApproximatelyEqual, randomBetween } from './Utils'
+import { grass_step_sound, grassStepSounds, woodStepSounds } from './AudioManager'
+import { isApproximatelyEqual, randomBetween, randomFrom } from './Utils'
 import Building from '../interfaces/Building'
+import Interactable from '../interfaces/Interactable'
+import SoundType from '../enums/SoundType'
 
 let lastStepPlayed = performance.now();
+let raycaster = new THREE.Raycaster()
 
 export default class CharacterController {
     
@@ -37,10 +40,15 @@ export default class CharacterController {
     private physicsController: RAPIER.KinematicCharacterController | null
 
     private player: Player
+    private scene: THREE.Scene
 
     private grounded: boolean
 
-    constructor(player: Player ,camera: THREE.Camera) {
+    private lookingAtObject: any
+
+    private selectedStepSoundArray: Array<THREE.Audio> = woodStepSounds
+
+    constructor(player: Player, camera: THREE.Camera, scene: THREE.Scene) {
         this.isWalking = false
         this.isSprinting = false
         this.velocity = new THREE.Vector3()
@@ -62,6 +70,7 @@ export default class CharacterController {
         this.controls = new PointerLockControls(camera, document.body)
 
         this.player = player
+        this.scene = scene
 
         this.initIO()
         this.init()
@@ -154,6 +163,11 @@ export default class CharacterController {
                             firearm.reload(this.player.inventory.inventory['Bullet'] as Bullet)
                         }
                     }
+
+                    if(this.player.selectedItem.item_type == ItemType.BUILDING) {
+                        const bp = this.player.selectedItem as Building;
+                        bp.rotate()
+                    }
                 }
             }
             if (keyPressed === "q") {
@@ -172,7 +186,13 @@ export default class CharacterController {
             if (keyPressed === "shift") {
                 this.keyShift = true;
             }
-        
+
+            if (keyPressed === 'e') {
+                if (this.lookingAtObject && this.lookingAtObject.item_type && this.lookingAtObject.item_type == ItemType.INTERACTABLE) {
+                    this.lookingAtObject.interact()
+                }
+            }
+         
             // if (keyPressed === "tab") {
             //     exitPointerLock()
             // }
@@ -247,12 +267,14 @@ export default class CharacterController {
 
         let footstepDelay = canSprint() ? 300 : 500;
 
+        let cur = randomFrom(this.selectedStepSoundArray)
+
         if (current - lastStepPlayed > footstepDelay && isGrounded() && isMoving()) {
-            if (grass_step_sound.isPlaying) {
-                grass_step_sound.stop();
+            if (cur.isPlaying) {
+                cur.stop();
             }
-            grass_step_sound.setDetune(randomBetween(-200, -500))
-            grass_step_sound.play();
+            cur.setDetune(randomBetween(-200, -500))
+            cur.play();
             lastStepPlayed = current; 
         }
 
@@ -303,7 +325,7 @@ export default class CharacterController {
 
         const physics = PhysicsManager.getInstance()
 
-        const displacement = this.velocity.clone().multiplyScalar(deltaTime * 100)
+        const displacement = this.velocity.clone().multiplyScalar(deltaTime * 75)
         const linVel = this.physicsObject.rigidBody.linvel()
         displacement.y = linVel.y
 
@@ -341,6 +363,37 @@ export default class CharacterController {
         ui.updateHotBar(this.player.hotBar, this.player.selectedSlot)
     }
 
+    handleInteract(obj: Interactable) {
+        obj.interact()
+    }
+
+    checkInfront() {
+        raycaster.setFromCamera(new THREE.Vector2(), this.camera);
+
+        //const objectsToIntersect = this.scene.children.filter(object => object !== this.player);
+        const intersects = raycaster.intersectObjects(this.scene.children, true);
+
+
+        // Text Display
+        if(intersects[0] && intersects[0].distance <= INTERACT_DISTANCE) {
+            //console.log(intersects[0].object)
+            if(intersects[0].object.userData.interactInfo) {
+                this.lookingAtObject = intersects[0].object.userData.class
+                UIManager.getInstance().setInteractText(true, intersects[0].object.userData.interactInfo)
+            }
+            else if(intersects[0].object.userData.class) {
+                if(intersects[0].object.userData.class.userData.interactInfo) {
+                    this.lookingAtObject = intersects[0].object.userData.class
+                    UIManager.getInstance().setInteractText(true, intersects[0].object.userData.class.userData.interactInfo)
+                }
+            }
+        }
+        else {
+            UIManager.getInstance().setInteractText(false)
+            this.lookingAtObject = null
+        }
+    }
+
     checkGround() {
         if(!this.physicsObject) {
             this.grounded = false
@@ -356,10 +409,42 @@ export default class CharacterController {
         else {
             this.grounded = false
         }
+
+        // SOUND SPECIFIC
+
+        //raycaster.setFromCamera(new THREE.Vector2(), this.camera);
+        raycaster.set(this.player.position, new THREE.Vector3(0, -1, 0))
+
+        const objectsToIntersect = this.scene.children.filter(object => object !== this.player);
+        const intersects = raycaster.intersectObjects(objectsToIntersect, true);
+
+
+        // Text Display
+        if(intersects[0] && intersects[0].distance <= INTERACT_DISTANCE) {
+            if(intersects[0].object.userData.soundType) {
+                const soundType = intersects[0].object.userData.soundType
+                if(soundType == SoundType.wood) {
+                    this.selectedStepSoundArray = woodStepSounds
+                }
+            }
+            else if(intersects[0].object.userData.class) {
+                if(intersects[0].object.userData.class.userData.soundType) {
+                    const soundType = intersects[0].object.userData.class.userData.soundType
+                    if(soundType == SoundType.wood) {
+                        this.selectedStepSoundArray = woodStepSounds
+                    }
+                }
+            }
+            else {
+                // grass
+                this.selectedStepSoundArray = grassStepSounds
+            }
+        }
     }
 
     update(elapsedTime: number, deltaTime: number) {
         this.checkGround()
+        this.checkInfront()
         this.handleMovement(elapsedTime, deltaTime)
     }
 }

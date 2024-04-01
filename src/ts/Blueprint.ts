@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import ItemType from '../enums/ItemType'
-import { randomFrom } from './Utils'
+import { randomBetween, randomFrom } from './Utils'
 import Player from './Player'
-import { bullet_impact_sound } from './AudioManager'
+import { build_sound, bullet_impact_sound } from './AudioManager'
 import PhysicsManager from './PhysicsManager'
 import Floor from './Floor'
 import BuildingManager from './BuildingManager'
@@ -58,39 +58,27 @@ export default class Blueprint implements Building {
         this.builder.shuffleBuildType()
     }
 
+    rotate() {
+        this.builder.rotate()
+    }
+
     use() {
-        this.builder.build()
-        // raycaster.setFromCamera(new THREE.Vector2(), this.camera);
+        if(this.owner.inventory.inventory["Wood"]) {
+            const costToBuild = 0
+            if(this.owner.inventory.inventory["Wood"].quantity >= costToBuild) {
+                console.log("has over 100 wood")
+                this.owner.inventory.inventory["Wood"].quantity -= costToBuild
+                this.builder.build()
 
-        // const objectsToIntersect = this.scene.children.filter(object => object !== this.objectPreview);
+                if(build_sound.isPlaying) {
+                    build_sound.stop()
+                }
 
-        // const intersects = raycaster.intersectObjects(objectsToIntersect, true);
+                build_sound.setDetune(randomBetween(250, 500))
 
-        // if(intersects[0] && intersects[0].distance < maxPlaceDistance) {
-            
-        //     const point = intersects[0].point;
-
-        //     let floor = new Floor()
-        //     this.scene.add(floor)
-        //     floor.position.copy(point)
-        //     floor.position.y = point.y + 0.5
-
-        //     // let obj = this.objectToPlace.clone()
-        //     // obj.position.copy(point);
-        //     // obj.position.y = point.y + size.y / 2
-
-        //     // PhysicsManager.getInstance().createFixedBox(obj.position, new THREE.Vector3(size.x / 2, size.y / 2, size.z / 2))
-
-        //     // this.scene.add(obj)
-
-        //     let audio = bullet_impact_sound
-
-        //     if(audio.isPlaying) {
-        //         audio.stop()
-        //     }
-
-        //     audio.play()
-        // }
+                build_sound.play()
+            }
+        }
     }
 
     async init() {

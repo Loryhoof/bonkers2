@@ -14,10 +14,37 @@ const axe_hit_1_sound = new THREE.Audio(listener);
 const axe_hit_2_sound = new THREE.Audio(listener);
 const axe_hit_3_sound = new THREE.Audio(listener);
 
+// Wood - Step Sounds
+
+const wood_step_1_sound = new THREE.Audio(listener);
+const wood_step_2_sound = new THREE.Audio(listener);
+const wood_step_3_sound = new THREE.Audio(listener);
+const wood_step_4_sound = new THREE.Audio(listener);
+
+// Door sounds
+
+const door_open_sound = new THREE.Audio(listener)
+const door_close_sound = new THREE.Audio(listener)
+
+// Build sounds
+
+const build_sound = new THREE.Audio(listener)
+
 const axeSounds = [
     axe_hit_1_sound,
     axe_hit_2_sound,
     axe_hit_3_sound
+]
+
+const grassStepSounds = [
+	grass_step_sound
+]
+
+const woodStepSounds = [
+	wood_step_1_sound,
+	wood_step_2_sound,
+	wood_step_3_sound,
+	wood_step_4_sound
 ]
 
 const audioLoader = new THREE.AudioLoader();
@@ -77,6 +104,50 @@ audioLoader.load( '/audio/axe_hit_3.mp3', function( buffer ) {
 	axe_hit_3_sound.setVolume( 1 );
 });
 
+
+//wood steps
+audioLoader.load( '/audio/wood_step1.mp3', function( buffer ) {
+	wood_step_1_sound.setBuffer( buffer );
+	wood_step_1_sound.setLoop( false );
+	wood_step_1_sound.setVolume( 0.5 );
+});
+
+audioLoader.load( '/audio/wood_step2.mp3', function( buffer ) {
+	wood_step_2_sound.setBuffer( buffer );
+	wood_step_2_sound.setLoop( false );
+	wood_step_2_sound.setVolume( 0.5 );
+});
+
+audioLoader.load( '/audio/wood_step3.mp3', function( buffer ) {
+	wood_step_3_sound.setBuffer( buffer );
+	wood_step_3_sound.setLoop( false );
+	wood_step_3_sound.setVolume( 0.5 );
+});
+
+audioLoader.load( '/audio/wood_step4.mp3', function( buffer ) {
+	wood_step_4_sound.setBuffer( buffer );
+	wood_step_4_sound.setLoop( false );
+	wood_step_4_sound.setVolume( 0.5 );
+});
+
+audioLoader.load( '/audio/door_open.mp3', function( buffer ) {
+	door_open_sound.setBuffer( buffer );
+	door_open_sound.setLoop( false );
+	door_open_sound.setVolume( 0.5 );
+});
+
+audioLoader.load( '/audio/door_close.mp3', function( buffer ) {
+	door_close_sound.setBuffer( buffer );
+	door_close_sound.setLoop( false );
+	door_close_sound.setVolume( 0.5 );
+});
+
+audioLoader.load( '/audio/build_sound.mp3', function( buffer ) {
+	build_sound.setBuffer( buffer );
+	build_sound.setLoop( false );
+	build_sound.setVolume( 0.5 );
+});
+
 export {
     listener,
     pistol_shoot_sound,
@@ -85,5 +156,10 @@ export {
     ambience_sound,
     grass_step_sound,
     tree_fall_sound,
-    axeSounds
+    axeSounds,
+	woodStepSounds,
+	grassStepSounds,
+	door_open_sound,
+	door_close_sound,
+	build_sound,
 };

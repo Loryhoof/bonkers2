@@ -7,18 +7,13 @@ import PhysicsManager from "./PhysicsManager"
 import PhysicsObject from "../interfaces/PhysicsObject"
 import { loadGLB } from "./Utils"
 import { GLTFLoader } from "three/examples/jsm/Addons.js"
-import Interactable from "../interfaces/Interactable"
-import ItemType from "../enums/ItemType"
-import SoundType from "../enums/SoundType"
-import Placeable from "../interfaces/Placeable"
-import EntityManager from "./EntityManager"
 
-let TOP = new THREE.Vector3(0, 0, -1.5)
-let BOTTOM = new THREE.Vector3(0, 0, 1.5)
-let LEFT = new THREE.Vector3(0, 1.75, 0)
-let RIGHT = new THREE.Vector3(0, -1.75, 0)
+const LEFT = new THREE.Vector3(-1.5, 0, 0)
+const RIGHT = new THREE.Vector3(1.5, 0, 0)
+const TOP = new THREE.Vector3(0, 0, 1.5)
+const BOTTOM = new THREE.Vector3(0, 0, -1.5)
 
-const scale = new THREE.Vector3(0.5, 3.5, 3)
+const scale = new THREE.Vector3(3, 0.5, 3)
 
 let positions = [
     LEFT,
@@ -27,34 +22,22 @@ let positions = [
     BOTTOM
 ]
 
-export default class Wall extends THREE.Object3D implements Placeable {
+export default class Stairs extends THREE.Object3D {
 
     public connectors: Array<Connector> = new Array().fill(4)
     private floorObject: THREE.Object3D = new THREE.Object3D
-    private physicsObject: PhysicsObject | null = null
+    private physicsObject: PhysicsObject | any = null
     public height: number = scale.y / 2
 
     private loader: GLTFLoader = new GLTFLoader()
-    private door: any = null
-    private doorway: any = null
-    //private item_type: ItemType = ItemType.INTERACTABLE
-    private doorOpen: boolean = false
-    public buildType: SelectedBuildType = SelectedBuildType.wall
-
-    public health: number = 500
-    public maxHealth: number = 500
-
-    private scene: THREE.Scene
 
     constructor(scene: THREE.Scene) {
         super()
 
-        this.scene = scene
-
-        this.connectors[0] = new Connector(scene, ConnectorPosition.top, this.buildType)
-        this.connectors[1] = new Connector(scene, ConnectorPosition.bottom, this.buildType)
-        this.connectors[2] = new Connector(scene, ConnectorPosition.left, this.buildType)
-        this.connectors[3] = new Connector(scene, ConnectorPosition.right, this.buildType)
+        this.connectors[0] = new Connector(scene, ConnectorPosition.top, SelectedBuildType.floor)
+        this.connectors[1] = new Connector(scene, ConnectorPosition.bottom, SelectedBuildType.floor)
+        this.connectors[2] = new Connector(scene, ConnectorPosition.left, SelectedBuildType.floor)
+        this.connectors[3] = new Connector(scene, ConnectorPosition.right, SelectedBuildType.floor)
 
         this.add(this.connectors[0], this.connectors[1], this.connectors[2], this.connectors[3])
 
@@ -62,13 +45,11 @@ export default class Wall extends THREE.Object3D implements Placeable {
 
         this.loader.load(
             // resource URL
-            'models/wall.glb',
+            'models/stairs.glb',
             // called when the resource is loaded
             ( gltf ) => {
 
                 let model = gltf.scene.clone()
-
-                
         
                 //scene.add( gltf.scene );
         
@@ -79,16 +60,6 @@ export default class Wall extends THREE.Object3D implements Placeable {
                 //gltf.asset; // Object
 
                 this.add(model)
-
-                this.traverse((child) => {
-                    child.userData.class = this
-                })
-
-                //gltf.scene.userData.class = this
-
-                this.userData.interactInfo = `${this.health} / ${this.maxHealth}`
-
-                this.userData.soundType = SoundType.wood
 
                 //console.log(gltf.scene, "SCENE")
 
@@ -103,7 +74,7 @@ export default class Wall extends THREE.Object3D implements Placeable {
                     //let offset = new THREE.Vector3(1.5, 0, 0)
                     //this.position.set(0,0,0)
                     sphere.position.copy(new THREE.Vector3(0,0,0)).add(positions[index])
-                    //console.log(this.position)
+                    console.log(this.position)
         
                     const worldPosition = sphere.position.clone().applyMatrix4(model.matrixWorld);
                     connector.position.copy(worldPosition)
@@ -111,20 +82,16 @@ export default class Wall extends THREE.Object3D implements Placeable {
                     sphere.userData.layer = BUILDING_LAYER;
                     sphere.userData.connector = connector
                     sphere.userData.class = this
-                    sphere.visible = false
+                    sphere.visible = true
                     
                     model.add(sphere)
                     connector.userData.sphere = sphere
                     this.floorObject = model
                     this.floorObject.userData.class = this
-
-                    this.door = model.getObjectByName('door')
-                    this.doorway = model.getObjectByName('doorway')
-                    //console.log(this.door, this.doorway, "doorss")
                 })
 
                 //this.init()
-                this.init()
+        
             },
             // called while loading is progressing
             function ( xhr ) {
@@ -143,22 +110,34 @@ export default class Wall extends THREE.Object3D implements Placeable {
       
     }
 
-    damage(dmg: number) {
-        this.health -= dmg
-
-        if(this.health <= 0) {
-            PhysicsManager.getInstance().remove(this.physicsObject as any)
-            EntityManager.getInstance().remove(this)
-            this.scene.remove(this) 
-        }
-    }
-
     cook() {
-        this.physicsObject = PhysicsManager.getInstance().createFixedBox(this.position, new THREE.Vector3(scale.x / 2, scale.y / 2, scale.z / 2), this.quaternion)
+        this.physicsObject = PhysicsManager.getInstance().createFixedBox(this.position, new THREE.Vector3(scale.x / 2, scale.y / 2, scale.z / 2))
     }
 
     init() {
 
+        
+        
+
+        //let mod = await loadGLB('models/floor.glb') as any
+
+        // const textureLoader = new THREE.TextureLoader();
+
+        // const groundTexture1 = textureLoader.load('wood.jpg');
+        // groundTexture1.wrapS = THREE.RepeatWrapping; // Repeat the texture in S direction
+        // groundTexture1.wrapT = THREE.RepeatWrapping; // Repeat the texture in T direction
+
+        // const geometry = new THREE.BoxGeometry(scale.x, scale.y, scale.z);
+        // const material = new THREE.MeshStandardMaterial({ color: 0x804b24, transparent: true, opacity: 1, map: groundTexture1 });
+        
+        // let model = new THREE.Mesh(geometry, material);
+
+        //model = mod.scene.clone()
+        //console.log(model)
+
+        //this.add(model)
+
+        
     }
 
     update() {
@@ -166,8 +145,6 @@ export default class Wall extends THREE.Object3D implements Placeable {
         if(!this.physicsObject) {
             return
         }  
-
-        this.userData.interactInfo = `${this.health} / ${this.maxHealth}`
 
         //console.log(this.position)
 

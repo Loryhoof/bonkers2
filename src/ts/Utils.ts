@@ -1,5 +1,6 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three'
+import Interactable from '../interfaces/Interactable';
 
 const loader = new GLTFLoader();
 

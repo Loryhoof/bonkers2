@@ -27,6 +27,10 @@ export default class PhysicsManager {
         return PhysicsManager.instance
     }
 
+    remove(physicsObject: PhysicsObject) {
+        this.physicsWorld.removeRigidBody(physicsObject.rigidBody)
+    }
+
     createDynamicBox(position: THREE.Vector3, scale: THREE.Vector3): PhysicsObject {
         const rbDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z)
         const rigidBody = this.physicsWorld.createRigidBody(rbDesc);

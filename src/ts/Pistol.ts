@@ -111,6 +111,16 @@ export default class Pistol extends THREE.Object3D implements Firearm {
                 //     }
                 // }
 
+                if(intersects[0].object.userData.class) {
+                    let obj = intersects[0].object.userData.class
+
+
+                    // yea this is stupid ik ik
+                    if(obj.health) {
+                        obj.damage(1)
+                    }
+                }
+
                 if (pistol_shoot_sound.isPlaying || bullet_impact_sound.isPlaying) {
                     pistol_shoot_sound.stop();
                     bullet_impact_sound.stop()

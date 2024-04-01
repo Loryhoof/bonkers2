@@ -9,6 +9,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { randomBetween } from './Utils'
 import Tree from './Tree'
 import Forest from './Forest'
+import EntityManager from './EntityManager'
 
 const loader = new GLTFLoader()
 
@@ -18,13 +19,15 @@ export default class World {
     public readonly physics: PhysicsManager
     public readonly ui: UIManager
     public readonly scene: THREE.Scene
-    public readonly entities: Array<any>
+    public readonly entityManager: EntityManager
+
+    private static instance: World
 
     constructor(camera: THREE.PerspectiveCamera, scene: THREE.Scene) {
         this.camera = camera
         this.scene = scene
         this.physics = PhysicsManager.getInstance()
-        this.entities = []
+        this.entityManager = EntityManager.getInstance()
         this.ui = UIManager.getInstance()
     }
 
@@ -74,7 +77,7 @@ export default class World {
         this.scene.add(ground)
 
         let player = new Player(this.scene, this.camera)
-        this.entities.push(player)
+        this.entityManager.add(player)
         this.scene.add(player)
 
 
@@ -88,16 +91,14 @@ export default class World {
     }
 
     spawnTrees() {
-        let forest = new Forest(100)
+        let forest = new Forest(250)
         this.scene.add(forest)
-        this.entities.push(forest)
+        this.entityManager.add(forest)
     }
 
     update(elapsedTime: number, deltaTime: number) {
 
-        this.entities.forEach((entity) => {
-            entity.update(elapsedTime, deltaTime)
-        })
+        this.entityManager.update(elapsedTime, deltaTime)
 
         this.physics.update(elapsedTime, deltaTime)
         

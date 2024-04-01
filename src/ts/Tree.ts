@@ -39,8 +39,15 @@ export default class Tree extends THREE.Object3D {
         this.physicsObject = PhysicsManager.getInstance().createFixedBox(this.position, new THREE.Vector3(0.4, 6, 0.4))
 
         const clonedModel = model.clone();
+        
+
+        clonedModel.traverse((child) => {
+            child.userData.class = this
+        })
 
         this.add(clonedModel);
+
+        this.userData.interactInfo = this.health
     }
 
     damage(dmg: number, item_type: ItemType, owner: Player) {
@@ -108,5 +115,7 @@ export default class Tree extends THREE.Object3D {
                 this.isDead = true
             }
         }
-}
+
+        this.userData.interactInfo = `${this.health} / 100`
+    }
 }

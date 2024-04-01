@@ -10,7 +10,7 @@ import { GLTFLoader } from "three/examples/jsm/Addons.js"
 import Interactable from "../interfaces/Interactable"
 import ItemType from "../enums/ItemType"
 import SoundType from "../enums/SoundType"
-import Placeable from "../interfaces/Placeable"
+import { door_close_sound, door_open_sound } from "./AudioManager"
 import EntityManager from "./EntityManager"
 
 let TOP = new THREE.Vector3(0, 0, -1.5)
@@ -19,6 +19,10 @@ let LEFT = new THREE.Vector3(0, 1.75, 0)
 let RIGHT = new THREE.Vector3(0, -1.75, 0)
 
 const scale = new THREE.Vector3(0.5, 3.5, 3)
+const animationDuration = 1
+
+const openRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2); // Rotate 90 degrees around Y-axis
+const closedRotation = new THREE.Quaternion();
 
 let positions = [
     LEFT,
@@ -27,7 +31,7 @@ let positions = [
     BOTTOM
 ]
 
-export default class Wall extends THREE.Object3D implements Placeable {
+export default class Door extends THREE.Object3D implements Interactable {
 
     public connectors: Array<Connector> = new Array().fill(4)
     private floorObject: THREE.Object3D = new THREE.Object3D
@@ -37,12 +41,17 @@ export default class Wall extends THREE.Object3D implements Placeable {
     private loader: GLTFLoader = new GLTFLoader()
     private door: any = null
     private doorway: any = null
-    //private item_type: ItemType = ItemType.INTERACTABLE
+    private item_type: ItemType = ItemType.INTERACTABLE
     private doorOpen: boolean = false
     public buildType: SelectedBuildType = SelectedBuildType.wall
+    private isAnimating: boolean = false
+    private startAnimate: boolean = false
+    private animationStartTime: number = -1
 
     public health: number = 500
     public maxHealth: number = 500
+
+    private target: THREE.Quaternion = new THREE.Quaternion()
 
     private scene: THREE.Scene
 
@@ -62,7 +71,7 @@ export default class Wall extends THREE.Object3D implements Placeable {
 
         this.loader.load(
             // resource URL
-            'models/wall.glb',
+            'models/door.glb',
             // called when the resource is loaded
             ( gltf ) => {
 
@@ -86,8 +95,7 @@ export default class Wall extends THREE.Object3D implements Placeable {
 
                 //gltf.scene.userData.class = this
 
-                this.userData.interactInfo = `${this.health} / ${this.maxHealth}`
-
+                this.userData.interactInfo = "Open"
                 this.userData.soundType = SoundType.wood
 
                 //console.log(gltf.scene, "SCENE")
@@ -146,6 +154,8 @@ export default class Wall extends THREE.Object3D implements Placeable {
     damage(dmg: number) {
         this.health -= dmg
 
+        console.log(this.health)
+
         if(this.health <= 0) {
             PhysicsManager.getInstance().remove(this.physicsObject as any)
             EntityManager.getInstance().remove(this)
@@ -161,27 +171,96 @@ export default class Wall extends THREE.Object3D implements Placeable {
 
     }
 
-    update() {
+    open() {
+        if(this.isAnimating) {
+            return
+        }
+
+        if(this.physicsObject) {
+            this.physicsObject.collider.setEnabled(false)
+        }
+
+        //this.target.position.copy(this.door.position)
+        //this.target.quaternion.copy(this.door.quaternion)
+
+        //this.target.rotateY(Math.PI / 2)
+        this.target = closedRotation
+
+        this.isAnimating = true
+
+        setTimeout(() => {
+            this.isAnimating = false
+        }, animationDuration * 1000)
+
+        if(door_open_sound.isPlaying) {
+            door_open_sound.stop()
+        }
+
+        door_open_sound.play()
+
+        this.doorOpen = true
+        this.userData.interactInfo = "Close"
+    }
+
+    close() {
+        if(this.isAnimating) {
+            return
+        }
+
+        if(this.physicsObject) {
+            this.physicsObject.collider.setEnabled(true)
+        }
+
+        this.target = openRotation
+
+        this.isAnimating = true
+
+        setTimeout(() => {
+            this.isAnimating = false
+        },  animationDuration * 1000)
+
+        if(door_close_sound.isPlaying) {
+            door_close_sound.stop()
+        }
+        
+        door_close_sound.play()
+
+        this.doorOpen = false
+        this.userData.interactInfo = "Open"
+    }
+    
+
+    interact() {
+        if(!this.door) {
+            return
+        }
+
+        if(this.doorOpen) {
+            this.close()
+        }
+        else {
+            this.open()
+        }
+
+        //if(this.doorOpen)
+        //this.door.rotateY(Math.PI / 2)
+
+        //console.log("interacting", this.doorOpen)
+    }
+
+    update(elapsedTime: number, deltaTime: number) {
 
         if(!this.physicsObject) {
             return
         }  
 
-        this.userData.interactInfo = `${this.health} / ${this.maxHealth}`
-
-        //console.log(this.position)
-
-        //this.physicsObject.rigidBody.setTranslation(new THREE.Vector3().copy(this.position), true)
-
-        //console.log(this.floorObject, "floor obj")
-
-        //this.floorObject.userData.class
-
-        // for(let i = 0; i < this.connectors.length; i++) {
-        //     //const worldPosition = this.connectors[i].userData.sphere.position.clone().applyMatrix4(this.floorObject.matrixWorld);
-        //     //connector.position.copy(worldPosition)
-        //     //this.connectors[i].position.copy(worldPosition)
-        // }
-
+        if (this.isAnimating) {
+            const t = Math.min(deltaTime / 0.25, 1);
+        
+            this.door.quaternion.slerp(this.target, t);
+        
+            this.door.updateMatrixWorld();
+            this.updateMatrixWorld();
+        }
     }
 }
