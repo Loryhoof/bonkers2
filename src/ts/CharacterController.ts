@@ -394,6 +394,18 @@ export default class CharacterController {
         }
     }
 
+    respawn() {
+        if(this.physicsObject) {
+            PhysicsManager.getInstance().setTranslation(this.physicsObject, new THREE.Vector3(0, 40, 0))
+        }
+    }
+
+    checkOutOfBounds() {
+        if(this.player.position.y <= -10) {
+            this.respawn()
+        }
+    }
+
     checkGround() {
         if(!this.physicsObject) {
             this.grounded = false
@@ -446,6 +458,7 @@ export default class CharacterController {
         this.checkGround()
         this.checkInfront()
         this.handleMovement(elapsedTime, deltaTime)
+        this.checkOutOfBounds()
     }
 }
 

@@ -52,7 +52,7 @@ export default class PhysicsManager {
     }
 
     createPlayerCapsule(): PhysicsObject {
-        let rbDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 10, 0).lockRotations() //kinematicVelocityBased
+        let rbDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 40, 0).lockRotations() //kinematicVelocityBased
         let rigidBody = this.physicsWorld.createRigidBody(rbDesc)
 
         let halfHeight = 1.1 // weird s
@@ -67,6 +67,10 @@ export default class PhysicsManager {
     createCharacterController() {
         const controller = this.physicsWorld.createCharacterController(0.01)
         return controller
+    }
+
+    setTranslation(physicsObject: PhysicsObject, vec: RAPIER.Vector3) {
+        physicsObject.rigidBody.setTranslation(vec, true)
     }
 
     intersectShape(shapePos: RAPIER.Vector3, shapeRot: RAPIER.Rotation, shape: RAPIER.Shape, collisionGroup: number | undefined) {

@@ -11,6 +11,7 @@ import { getWorldPos } from './Utils';
 import Stairs from './Stairs';
 import Door from './Door';
 import EntityManager from './EntityManager';
+import Window from './Window';
 
 const raycaster = new THREE.Raycaster()
 
@@ -59,6 +60,7 @@ export default class BuildingManager {
         this.buildingObjects.push(new Floor(scene))
         this.buildingObjects.push(new Wall(scene))
         this.buildingObjects.push(new Door(scene))
+        this.buildingObjects.push(new Window(scene))
    
     }
 
@@ -413,6 +415,9 @@ export default class BuildingManager {
                 case 2:
                     this.previewBuildObject = new Door(this.scene)
                     break
+                case 3:
+                    this.previewBuildObject = new Window(this.scene)
+                    break
             }
 
             //console.log(this.previewBuildObject)
@@ -466,6 +471,9 @@ export default class BuildingManager {
                     break
                 case 2:
                     obj = new Door(this.scene)
+                    break
+                case 3:
+                    obj = new Window(this.scene)
                     break
             }
 

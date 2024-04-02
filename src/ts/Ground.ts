@@ -1,14 +1,22 @@
 import * as THREE from 'three';
 
 const groundVertexShader = `
+    #include <fog_pars_vertex>
+    
     varying vec2 vUv;
     void main() {
+        #include <begin_vertex>
+        #include <project_vertex>
+        #include <fog_vertex>
+
         vUv = uv * 200.0;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
 `;
 
 const groundFragmentShader = `
+    #include <fog_pars_fragment>
+
     varying vec2 vUv;
     uniform sampler2D groundTexture1;
     uniform sampler2D groundTexture2;
@@ -31,7 +39,10 @@ const groundFragmentShader = `
         return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
     }
 
+    
+
     void main() {
+        
         vec2 uv = vUv; // UV coordinates adjusted to make the texture "smaller"
         float n = noise(uv); // Generate Perlin noise for each patch
 
@@ -40,6 +51,7 @@ const groundFragmentShader = `
         vec4 texture2Color = texture2D(groundTexture2, vUv);
         float blendFactor = smoothstep(0.1, 0.9, n); // Adjust these values for smoother or more abrupt transitions
         gl_FragColor = mix(texture1Color, texture2Color, blendFactor);
+        #include <fog_fragment>
     }
 `;
 
@@ -61,5 +73,10 @@ const groundUniforms = {
 export const groundMaterial = new THREE.ShaderMaterial({
     vertexShader: groundVertexShader,
     fragmentShader: groundFragmentShader,
-    uniforms: groundUniforms
+    uniforms: THREE.UniformsUtils.merge( [
+        THREE.UniformsLib[ 'fog' ], groundUniforms
+] ),
+fog: true
 });
+
+
