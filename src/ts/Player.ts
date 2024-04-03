@@ -78,11 +78,20 @@ export default class Player extends THREE.Object3D {
         ui.initHotBar(this.hotBar)
     }
 
+    damage(dmg: number) {
+        this.health -= dmg
+    }
+
     update(elapsedTime: number, deltaTime: number) {
         this.controller.update(elapsedTime, deltaTime)
         
         if(this.selectedItem) {
             this.selectedItem.update(elapsedTime, deltaTime)
+        }
+
+        if(this.health <= 0) {
+            this.health = 100
+            this.controller.respawn()
         }
 
         this.inventory.update()

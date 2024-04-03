@@ -14,6 +14,7 @@ import RAPIER from '@dimforge/rapier3d'
 import Ocean from './Ocean'
 import { SimplexNoise } from 'three/examples/jsm/Addons.js'
 import Terrain from './Terrain'
+import Enemy from './Enemy'
 
 const loader = new GLTFLoader()
 
@@ -88,9 +89,26 @@ export default class World {
         this.entityManager.add(player)
         this.scene.add(player)
 
-        let nsubdivs = 20;
-        let scale = new RAPIER.Vector3(700.0, 10.0, 700.0);
-        this.generateTerrain(nsubdivs, scale);
+        let enemy = new Enemy(this.scene)
+        this.entityManager.add(enemy)
+        this.scene.add(enemy)
+        enemy.setTarget(player)
+
+        let enemy2 = new Enemy(this.scene)
+        this.entityManager.add(enemy2)
+        this.scene.add(enemy2)
+        enemy2.setTarget(player)
+
+        let enemy3 = new Enemy(this.scene)
+        this.entityManager.add(enemy3)
+        this.scene.add(enemy3)
+        enemy3.setTarget(enemy3)
+
+        const terrain = new Terrain(this.scene)
+
+        //let nsubdivs = 100;
+        //let scale = new RAPIER.Vector3(100.0, 10.0, 100.0);
+        //this.generateTerrain(nsubdivs, scale);
         //this.generateTerrain(100, 100, 20)
     }
     
@@ -134,19 +152,19 @@ export default class World {
 
       
           // Generate a random height value using Simplex noise
-          const randomHeight = simplex.noise(xPos, zPos);
+          const randomHeight = simplex.noise(xPos * 0.05, zPos * 0.05);
       
           // Update the y position of the vertex based on the generated height
           vertices[i + 2] = randomHeight * scale.y;
 
-          const mesh = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshBasicMaterial())
-          const boxPosition = new THREE.Vector3(xPos, zPos, randomHeight * scale.y).applyEuler(threeFloor.rotation).add(threeFloor.position);
-          mesh.position.copy(boxPosition)
+        //   const mesh = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshBasicMaterial())
+        //   const boxPosition = new THREE.Vector3(xPos, zPos, randomHeight * scale.y).applyEuler(threeFloor.rotation).add(threeFloor.position);
+        //   mesh.position.copy(boxPosition)
           //this.scene.add(mesh)
 
-          let tree = new Tree(model.scene.clone())
-          tree.position.copy(boxPosition)
-          this.scene.add(tree)
+        //   let tree = new Tree(model.scene.clone())
+        //   tree.position.copy(boxPosition)
+        //   this.scene.add(tree)
 
           //mesh.updateMatrixWorld()
 
@@ -172,7 +190,7 @@ export default class World {
             }
         }
 
-        console.log(heights)
+        //console.log(heights)
 
         
 
@@ -185,7 +203,7 @@ export default class World {
         );
         PhysicsManager.getInstance().physicsWorld.createCollider(groundCollider, groundBody);
 
-        const numBoxes = 0; // Adjust as needed
+        const numBoxes = 1000; // Adjust as needed
         const boxSize = 1; // Adjust as needed
         const minY = 0; // Minimum height for box placement 
 
@@ -198,13 +216,14 @@ export default class World {
                 //randomY = getHeightAt(randomX, randomZ, nsubdivs, scale, columsRows);
                 //randomY = 0
                 //console.log(randomY)
-                randomY = getHeightAtPosition(randomX, randomZ, nsubdivs, columsRows, scale)
+                randomY = getHeightAtPositionPog(randomX, randomZ, heights, 100, 10, nsubdivs)
                 
 
                 //console.log(randomX,)
                 
                 //console.log(randomY)
 
+                console.log(randomY)
                 //console.log(randomX, randomZ)
             } while (randomY < minY); // Ensure box is not placed below minY
 
@@ -212,15 +231,77 @@ export default class World {
                 new THREE.BoxGeometry(boxSize, boxSize, boxSize),
                 new THREE.MeshNormalMaterial()
             );
-            box.position.set(randomX, randomY + (boxSize / 2), randomZ);
+            //box.position.set(randomX, randomY + (boxSize / 2),randomZ);
 
             //const mesh = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshBasicMaterial())
             const boxPosition = new THREE.Vector3(randomX, randomZ, randomY).applyEuler(threeFloor.rotation).add(threeFloor.position);
+            
             box.position.copy(boxPosition)
             //this.scene.add(mesh)
 
             this.scene.add(box);
         }
+
+        function getHeightAtPositionPog(x: number, z: number, heightData: number[], terrainSize: number, maxHeight: number, nsubdivs: number): number | null {
+            // Convert x and z coordinates to terrain grid indices
+            const gridX = Math.floor((x / terrainSize + 0.5) * nsubdivs);
+            const gridZ = Math.floor((z / terrainSize + 0.5) * nsubdivs);
+        
+            // Check if the provided coordinates are within the bounds of the terrain
+            if (gridX < 0 || gridX >= nsubdivs || gridZ < 0 || gridZ >= nsubdivs) {
+                return null; // Coordinates are outside the terrain bounds
+            }
+        
+            // Calculate the index of the height value in the height data array
+            const index = gridZ * (nsubdivs + 1) + gridX;
+        
+            // Retrieve the height value from the height data array
+            const height = heightData[index];
+        
+            // Scale the height value to match the maximum terrain height
+            return height * maxHeight;
+        }
+        
+        
+
+        function ssb(x, z, scale, columsRows) {
+            // Calculate the size of each grid cell based on subdivisions and scale
+            const dx = scale.x / nsubdivs;
+            const dy = scale.z / nsubdivs;
+        
+            // Calculate flipped column and row indices due to rotation
+            const row = Math.floor(Math.abs(x + (scale.x / 2)) / dx); // Use x for row
+            const column = Math.floor(Math.abs(z - (scale.z / 2)) / dy); // Use z for column
+        
+            // Retrieve the heights of neighboring vertices
+            const topLeftHeight = getVertexHeight(column, row, scale, columsRows);
+            const topRightHeight = getVertexHeight(column, row + 1, scale, columsRows);
+            const bottomLeftHeight = getVertexHeight(column + 1, row, scale, columsRows);
+            const bottomRightHeight = getVertexHeight(column + 1, row + 1, scale, columsRows);
+        
+            // If any of the heights is null, return null
+            if (topLeftHeight === null || topRightHeight === null || bottomLeftHeight === null || bottomRightHeight === null) {
+                return null;
+            }
+        
+            // Interpolate the height using bilinear interpolation
+            const xRatio = (x - ((column * dx) - (scale.x / 2))) / dx;
+            const zRatio = (z - ((row * dy) - (scale.z / 2))) / dy;
+        
+            const topHeight = topLeftHeight * (1 - xRatio) + topRightHeight * xRatio;
+            const bottomHeight = bottomLeftHeight * (1 - xRatio) + bottomRightHeight * xRatio;
+        
+            return topHeight * (1 - zRatio) + bottomHeight * zRatio;
+        }
+        
+        function getVertexHeight(column, row, scale, columsRows) {
+            if (columsRows.has(column) && columsRows.get(column).has(row)) {
+                return columsRows.get(column).get(row);
+            } else {
+                return null; // Return null if the vertex does not exist
+            }
+        }
+        
 
         
 
@@ -511,6 +592,8 @@ export default class World {
     }
 
     update(elapsedTime: number, deltaTime: number) {
+
+        
 
         this.entityManager.update(elapsedTime, deltaTime)
 

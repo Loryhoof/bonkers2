@@ -23,7 +23,7 @@ const skyFragmentShader = `
     void main() {
         float h = normalize(vWorldPosition + offset).y;
         gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
-        #include <fog_fragment>
+       //#include <fog_fragment>
     }
 `;
 

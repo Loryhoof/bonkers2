@@ -13,3 +13,5 @@ export const maxJumpHeight = 2;
 export const FLOOR_DISTANCE = 1.48
 export const BUILDING_LAYER = 3
 export const INTERACT_DISTANCE = 1.5
+
+export const CENTER = new THREE.Vector3(0, 0, 0)

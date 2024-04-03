@@ -1,7 +1,9 @@
+import { CENTER } from "./constants"
+
 export default class EntityManager {
 
     private entities: Array<any> = []
-    private static instance: EntityManager 
+    private static instance: EntityManager
 
     constructor() {
 

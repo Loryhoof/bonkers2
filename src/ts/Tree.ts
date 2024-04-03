@@ -19,12 +19,12 @@ export default class Tree extends THREE.Object3D {
 
     private time: number
     private dropRate: number
-    private physicsObject: PhysicsObject
+    private physicsObject: PhysicsObject | any
 
     constructor(model: THREE.Group) {
         super()
         model.scale.set(1, randomBetween(0.4, 1.3), 1)
-        this.position.set(randomBetween(-50, 50), 0.5, randomBetween(-50, 50))
+        //this.position.set(randomBetween(-50, 50), 0.5, randomBetween(-50, 50))
 
         this.health = 100
         this.canTakeDamage = true
@@ -36,7 +36,7 @@ export default class Tree extends THREE.Object3D {
 
         this.isDead = false
         this.dropRate = 20
-        this.physicsObject = PhysicsManager.getInstance().createFixedBox(this.position, new THREE.Vector3(0.4, 6, 0.4))
+        //this.physicsObject = PhysicsManager.getInstance().createFixedBox(this.position, new THREE.Vector3(0.4, 6, 0.4), this.quaternion)
 
         const clonedModel = model.clone();
         
@@ -47,7 +47,13 @@ export default class Tree extends THREE.Object3D {
 
         this.add(clonedModel);
 
+        clonedModel.position.copy(this.position)
+
         this.userData.interactInfo = this.health
+    }
+
+    init() {
+        this.physicsObject = PhysicsManager.getInstance().createFixedBox(this.position, new THREE.Vector3(0.4, 6, 0.4), this.quaternion)
     }
 
     damage(dmg: number, item_type: ItemType, owner: Player) {
