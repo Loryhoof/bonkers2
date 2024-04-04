@@ -15,6 +15,7 @@ import { isApproximatelyEqual, randomBetween, randomFrom } from './Utils'
 import Building from '../interfaces/Building'
 import Interactable from '../interfaces/Interactable'
 import SoundType from '../enums/SoundType'
+import CustomCameraControls from './CustomCameraControls'
 
 let lastStepPlayed = performance.now();
 let raycaster = new THREE.Raycaster()
@@ -48,6 +49,8 @@ export default class CharacterController {
 
     private selectedStepSoundArray: Array<THREE.Audio> = woodStepSounds
 
+    public dummyCamera: THREE.Camera = new THREE.Camera()
+
     constructor(player: Player, camera: THREE.Camera, scene: THREE.Scene) {
         this.isWalking = false
         this.isSprinting = false
@@ -67,8 +70,8 @@ export default class CharacterController {
 
         this.grounded = false
 
-        this.controls = new PointerLockControls(camera, document.body)
-
+        this.controls = new PointerLockControls(this.dummyCamera, document.body)
+        
         this.player = player
         this.scene = scene
 
@@ -281,10 +284,11 @@ export default class CharacterController {
         let {x, y, z} = this.physicsObject?.rigidBody.translation()
 
         this.player.position.set(x, y, z)
-        this.camera.position.copy(this.player.position)
+        this.player.cameraParent.position.copy(this.player.position).add(new THREE.Vector3(0,0.25,0))
 
         const cameraDirection = new THREE.Vector3();
         this.controls.getObject().getWorldDirection(cameraDirection);
+        //this.player.cameraParent.getWorldDirection(cameraDirection)
         cameraDirection.normalize();
 
         const cameraForward = new THREE.Vector3(cameraDirection.x, 0, cameraDirection.z).normalize();
@@ -458,6 +462,7 @@ export default class CharacterController {
         this.checkGround()
         this.checkInfront()
         this.handleMovement(elapsedTime, deltaTime)
+        //this.controls.update()
         this.checkOutOfBounds()
     }
 }

@@ -7,6 +7,7 @@ import { loadGLB, randomBetween, randomFrom } from './Utils';
 import { math } from './math';
 import Tree from './Tree';
 import EntityManager from './EntityManager';
+import Barrel from './Barrel';
 
 
 const treePrefab = await loadGLB('models/tree.glb') as any
@@ -144,7 +145,8 @@ export default class Terrain {
             //     this.scene.add(p)
             // }
             if(Math.random() > 0.9) {
-                if (Math.random() > 0.7) {
+                let val = Math.random()
+                if (val < 0.4) {
                     let height = scale.y * randomHeight
                   
                     let prefab = treePrefab.scene.clone()
@@ -158,10 +160,34 @@ export default class Terrain {
                     this.scene.add(p)
                     p.init()
                 }
-                else {
+                else if (val < 0.5) {
+                    let height = scale.y * randomHeight
+                  
+                    let p = new Barrel()
+                    
+    
+                    p.position.set(x, y, height)
+                    const boxPosition = new THREE.Vector3(x, y, height).applyEuler(mesh.rotation).add(mesh.position);
+                    p.position.copy(boxPosition)
+                    treeCount++
+                    this.scene.add(p)
+                }
+                else if (val < 0.6) {
                     let height = scale.y * randomHeight
                   
                     let p = bushPrefab.scene.clone()
+                    
+    
+                    p.position.set(x, y, height)
+                    const boxPosition = new THREE.Vector3(x, y, height).applyEuler(mesh.rotation).add(mesh.position);
+                    p.position.copy(boxPosition)
+                    treeCount++
+                    this.scene.add(p)
+                }
+                else if (val < 0.7) {
+                    let height = scale.y * randomHeight
+                  
+                    let p = new THREE.Mesh(new THREE.BoxGeometry(3,3,3), new THREE.MeshStandardMaterial({color: 0x757575}))
                     
     
                     p.position.set(x, y, height)

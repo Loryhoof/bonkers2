@@ -10,6 +10,9 @@ import UsableItem from '../interfaces/UsableItem'
 import Bullet from './Bullet'
 import Hatchet from './Hatchet'
 import Blueprint from './Blueprint'
+import { FBXLoader } from 'three/examples/jsm/Addons.js'
+import Recoil from './Recoil'
+import CustomCameraControls from './CustomCameraControls'
 
 const ui = UIManager.getInstance()
 
@@ -17,7 +20,7 @@ export default class Player extends THREE.Object3D {
 
     private model: THREE.Mesh | null
 
-    private camera: THREE.Camera
+    public camera: THREE.Camera
 
     private health: number
     private hunger: number
@@ -32,6 +35,12 @@ export default class Player extends THREE.Object3D {
 
     private scene: THREE.Scene
 
+    private playerModel: any
+
+    public cameraParent: THREE.Object3D = new THREE.Object3D
+
+    public recoilParent: Recoil
+
     constructor(scene: THREE.Scene, camera: THREE.Camera) {
         super()
         this.model = null
@@ -44,6 +53,8 @@ export default class Player extends THREE.Object3D {
 
         this.selectedItem = null
         this.selectedSlot = -1
+
+        this.recoilParent = new Recoil(this.camera)
         
         this.controller = new CharacterController(this, camera, scene)
 
@@ -53,6 +64,27 @@ export default class Player extends THREE.Object3D {
     }
 
     private init() {
+
+        this.cameraParent = new THREE.Object3D
+        this.cameraParent.add(this.recoilParent)
+        this.recoilParent.add(this.camera)
+        this.scene.add(this.cameraParent)
+
+        //console.log(this.cameraParent, "camera parentttttttt")
+        //console.log(this.camera)
+
+
+        
+        // const fbxLoader = new FBXLoader();
+        // fbxLoader.load('chars/zombie_running.fbx', (model: any) => {
+        //     model.scale.set(0.007, 0.007, 0.007)
+        //     model.position.y -= 1.3
+
+        //     //model.scale.set(0.01, 0.01, 0.01)
+        //     this.add(model)
+        //     this.playerModel = model;
+        // })
+
         const geometry = new THREE.CylinderGeometry(0.5, 0.5, 1.8, 32);
         const material = new THREE.MeshStandardMaterial({color: 0x00ff00});
 
@@ -76,6 +108,10 @@ export default class Player extends THREE.Object3D {
         this.hotBar[3] = blueprint
 
         ui.initHotBar(this.hotBar)
+
+        this.traverse((child) => {
+            child.userData.class = this
+        })
     }
 
     damage(dmg: number) {
@@ -83,7 +119,21 @@ export default class Player extends THREE.Object3D {
     }
 
     update(elapsedTime: number, deltaTime: number) {
+
+        // if(this.controls) {
+        //     this.controls.update()
+        // }
+        //this.cameraParent.position.copy(this.controller.dummyCamera.position)
+        this.cameraParent.quaternion.copy(this.controller.dummyCamera.quaternion)
+
         this.controller.update(elapsedTime, deltaTime)
+
+        //this.recoilParent.rotateX(Math.PI / 1000)
+        this.recoilParent.update(elapsedTime, deltaTime)
+
+        if(this.playerModel) {
+            //this.playerModel.lookAt(this)
+        }
         
         if(this.selectedItem) {
             this.selectedItem.update(elapsedTime, deltaTime)

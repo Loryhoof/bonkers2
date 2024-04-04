@@ -5,8 +5,9 @@ import { loadGLB } from './Utils'
 import { adsOffset, handOffset } from './constants'
 import Firearm from '../interfaces/Firearm'
 import Player from './Player'
-import { bullet_impact_sound, pistol_reload_sound, pistol_shoot_sound } from './AudioManager'
+import { bullet_impact_sound, hit_sound, pistol_reload_sound, pistol_shoot_sound } from './AudioManager'
 import Bullet from './Bullet'
+import MuzzleFlash from './MuzzleFlash'
 
 let raycaster = new THREE.Raycaster()
 let currentPosition = new THREE.Vector3()
@@ -35,6 +36,8 @@ export default class Pistol extends THREE.Object3D implements Firearm {
     private owner: Player | null
     private isActive: boolean
 
+    private muzzleFlash: MuzzleFlash
+
     constructor(
         ammoCount: number,
         camera: THREE.Camera,
@@ -43,7 +46,7 @@ export default class Pistol extends THREE.Object3D implements Firearm {
         super()
         this.name = "Pistol"
         this.quantity = 1
-        this.damage = 50
+        this.damage = 20
         this.ammo = ammoCount
         this.maxAmmo = 15
         this.item_type = ItemType.FIREARM
@@ -56,6 +59,8 @@ export default class Pistol extends THREE.Object3D implements Firearm {
         this.isAds = false
         this.owner = null
         this.isActive = false
+
+        this.muzzleFlash = new MuzzleFlash(this.scene)
 
         this.init()
     }
@@ -81,8 +86,11 @@ export default class Pistol extends THREE.Object3D implements Firearm {
     shoot() {
         if(this.ammo > 0 && !this.isReloading) {
             raycaster.setFromCamera(new THREE.Vector2(), this.camera)
-            const objectsToIntersect = this.scene.children.filter(object => object !== this.model); // && !object.ignoreRayHit
+            const objectsToIntersect = this.scene.children.filter(object => object !== this.model && object !== this.muzzleFlash.mesh); // && !object.ignoreRayHit
             const intersects = raycaster.intersectObjects(objectsToIntersect, true);
+
+            const offsetPosition = new THREE.Vector3().copy(this.model.position).add(new THREE.Vector3(0,0,-1).clone().multiplyScalar(1).applyQuaternion(this.model.quaternion));
+            this.muzzleFlash.show(offsetPosition, this.model.quaternion, 2)
 
             if (intersects.length > 0) {
                 const point = intersects[0].point;
@@ -96,12 +104,12 @@ export default class Pistol extends THREE.Object3D implements Firearm {
 
 
                 // maybe bad for perf.. dunno
-                setTimeout(() => {
-                    this.scene.remove(cube)
-                }, 10000)
+                // setTimeout(() => {
+                //     this.scene.remove(cube)
+                // }, 10000)
                 ///
 
-                this.scene.add(cube);
+                //this.scene.add(cube);
 
                 // if (intersects[0].object.root && intersects[0].object.root.canTakeDamage) {
                 //     if (intersects[0].object.root.name == "Head") {
@@ -116,8 +124,18 @@ export default class Pistol extends THREE.Object3D implements Firearm {
 
 
                     // yea this is stupid ik ik
-                    if(obj.health) {
-                        obj.damage(1)
+                    //console.log()
+                    if(obj.health != undefined) {
+                        console.log('has health', obj.health)
+                        obj.damage(this.damage)
+
+                        if(hit_sound.isPlaying) {
+                            hit_sound.stop()
+                        }
+                        
+                        setTimeout(() => {
+                            hit_sound.play()
+                        }, 100)
                     }
                 }
 
@@ -139,7 +157,8 @@ export default class Pistol extends THREE.Object3D implements Firearm {
                 if (!hasAppliedRecoil) {
                     //initialCameraRotationX = this.camera.rotation.x;
                     hasAppliedRecoil = true;
-                    this.camera.rotateX(Math.PI / 72);
+                   //this.owner?.recoilParent.rotateX(Math.PI / 72);
+                    this.owner?.recoilParent.recoilFire()
                 }
 
                 setTimeout(() => {
@@ -215,10 +234,23 @@ export default class Pistol extends THREE.Object3D implements Firearm {
 
         let target = currentPosition.clone();
 
-        target.applyQuaternion(this.camera.quaternion);
+        target.applyQuaternion(this.owner.cameraParent.quaternion);
 
-        this.model.position.copy(this.camera.position).add(target);
-        this.model.rotation.copy(this.camera.rotation);
+
+        let w = new THREE.Vector3()
+        this.owner.recoilParent.getWorldPosition(w)
+
+        let r = new THREE.Quaternion
+        this.owner.recoilParent.getWorldQuaternion(r)
+
+        this.model.position.copy(w).add(target);
+        this.model.quaternion.copy(r);
+
+        //let d = new THREE.Vector3()
+        //this.owner.cameraParent.getWorldDirection(d)
+
+
+        //this.model.lookAt(d)
 
         let frequency = 2; // faster
         let amplitude = 0.015; // more movement

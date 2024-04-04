@@ -147,10 +147,10 @@ export default class Hatchet extends THREE.Object3D implements Tool {
 
         let target = currentPosition.clone();
 
-        target.applyQuaternion(this.camera.quaternion);
+        target.applyQuaternion(this.owner.cameraParent.quaternion);
 
-        this.model.position.copy(this.camera.position).add(target);
-        this.model.rotation.copy(this.camera.rotation);
+        this.model.position.copy(this.owner.cameraParent.position).add(target);
+        this.model.rotation.copy(this.owner.cameraParent.rotation);
 
         let frequency = 2; // faster
         let amplitude = 0.015; // more movement

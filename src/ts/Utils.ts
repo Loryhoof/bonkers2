@@ -1,8 +1,10 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three'
 import Interactable from '../interfaces/Interactable';
+import { FBXLoader } from 'three/examples/jsm/Addons.js';
 
-const loader = new GLTFLoader();
+const gltfLoader = new GLTFLoader();
+const fbxLoader = new FBXLoader();
 
 export const randomBetween = (min: number, max: number) => {
     return Math.random() * (max - min) + min;
@@ -22,7 +24,7 @@ export const getWorldPos = (localPosition: THREE.Vector3, worldParent: THREE.Gro
 
 export const loadGLB = async (modelPath: string) => {
     return new Promise((resolve, reject) => {
-        loader.load(
+        gltfLoader.load(
             modelPath,
             function (gltf) {
                 resolve(gltf);
@@ -35,6 +37,26 @@ export const loadGLB = async (modelPath: string) => {
             function (error) {
                 reject(error);
                 console.error('Error loading GLB model', error);
+            }
+        );
+    });
+};
+
+export const loadFBX = async (modelPath: string) => {
+    return new Promise((resolve, reject) => {
+        fbxLoader.load(
+            modelPath,
+            function (fbx) {
+                resolve(fbx);
+            },
+            // Optional progress callback
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            // Optional error callback
+            function (error) {
+                reject(error);
+                console.error('Error loading FBX model', error);
             }
         );
     });

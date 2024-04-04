@@ -30,6 +30,10 @@ const door_close_sound = new THREE.Audio(listener)
 
 const build_sound = new THREE.Audio(listener)
 
+// misc
+
+const hit_sound = new THREE.Audio(listener)
+
 const axeSounds = [
     axe_hit_1_sound,
     axe_hit_2_sound,
@@ -148,6 +152,12 @@ audioLoader.load( '/audio/build_sound.mp3', function( buffer ) {
 	build_sound.setVolume( 0.5 );
 });
 
+audioLoader.load( '/audio/hitmarker.mp3', function( buffer ) {
+	hit_sound.setBuffer( buffer );
+	hit_sound.setLoop( false );
+	hit_sound.setVolume( 2 );
+});
+
 export {
     listener,
     pistol_shoot_sound,
@@ -162,4 +172,5 @@ export {
 	door_open_sound,
 	door_close_sound,
 	build_sound,
+	hit_sound
 };

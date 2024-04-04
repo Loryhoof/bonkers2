@@ -15,6 +15,8 @@ import Ocean from './Ocean'
 import { SimplexNoise } from 'three/examples/jsm/Addons.js'
 import Terrain from './Terrain'
 import Enemy from './Enemy'
+import { listener } from './AudioManager'
+import { SpawnManager } from './SpawnManager'
 
 const loader = new GLTFLoader()
 
@@ -25,6 +27,8 @@ export default class World {
     public readonly ui: UIManager
     public readonly scene: THREE.Scene
     public readonly entityManager: EntityManager
+    
+    private spawner: SpawnManager | any
 
     private static instance: World
     
@@ -34,6 +38,7 @@ export default class World {
         this.physics = PhysicsManager.getInstance()
         this.entityManager = EntityManager.getInstance()
         this.ui = UIManager.getInstance()
+        this.spawner = null
     }
 
     async initialize() {
@@ -85,24 +90,23 @@ export default class World {
         //this.physics.createFixedBox(ground.position, new THREE.Vector3(1000, ground.position.y - 0.5, 1000))
         //this.scene.add(ground)
 
+        this.camera.add(listener)
+
         let player = new Player(this.scene, this.camera)
         this.entityManager.add(player)
         this.scene.add(player)
 
-        let enemy = new Enemy(this.scene)
-        this.entityManager.add(enemy)
-        this.scene.add(enemy)
-        enemy.setTarget(player)
+        
 
-        let enemy2 = new Enemy(this.scene)
-        this.entityManager.add(enemy2)
-        this.scene.add(enemy2)
-        enemy2.setTarget(player)
+        // let enemy2 = new Enemy(this.scene)
+        // this.entityManager.add(enemy2)
+        // this.scene.add(enemy2)
+        // enemy2.setTarget(player)
 
-        let enemy3 = new Enemy(this.scene)
-        this.entityManager.add(enemy3)
-        this.scene.add(enemy3)
-        enemy3.setTarget(enemy3)
+        // let enemy3 = new Enemy(this.scene)
+        // this.entityManager.add(enemy3)
+        // this.scene.add(enemy3)
+        // enemy3.setTarget(player)
 
         const terrain = new Terrain(this.scene)
 
@@ -110,8 +114,10 @@ export default class World {
         //let scale = new RAPIER.Vector3(100.0, 10.0, 100.0);
         //this.generateTerrain(nsubdivs, scale);
         //this.generateTerrain(100, 100, 20)
+
+        this.spawner = new SpawnManager(this.scene, player)
     }
-    
+
     async generateTerrain(nsubdivs: number, scale: { x: number; y: number; z: number }) {
 
         const model = await loadGLB('models/tree.glb') as any        
@@ -594,6 +600,7 @@ export default class World {
     update(elapsedTime: number, deltaTime: number) {
 
         
+        this.spawner.update(elapsedTime, deltaTime)
 
         this.entityManager.update(elapsedTime, deltaTime)
 
