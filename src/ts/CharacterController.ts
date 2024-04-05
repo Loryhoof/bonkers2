@@ -51,6 +51,8 @@ export default class CharacterController {
 
     public dummyCamera: THREE.Camera = new THREE.Camera()
 
+    private isFlyMode: boolean = false
+
     constructor(player: Player, camera: THREE.Camera, scene: THREE.Scene) {
         this.isWalking = false
         this.isSprinting = false
@@ -173,6 +175,11 @@ export default class CharacterController {
                     }
                 }
             }
+            if (keyPressed === 'f') {
+                this.isFlyMode = !this.isFlyMode
+                let val = this.isFlyMode ? 0 : 1
+                this.physicsObject?.rigidBody.setGravityScale(val, true)
+            }
             if (keyPressed === "q") {
                 if(this.player.selectedItem) {
                     if(this.player.selectedItem.item_type == ItemType.BUILDING) {
@@ -284,7 +291,7 @@ export default class CharacterController {
         let {x, y, z} = this.physicsObject?.rigidBody.translation()
 
         this.player.position.set(x, y, z)
-        this.player.cameraParent.position.copy(this.player.position).add(new THREE.Vector3(0,0.25,0))
+        this.player.cameraParent.position.copy(this.player.position).add(new THREE.Vector3(0,0.25,0)) // player height offset
 
         const cameraDirection = new THREE.Vector3();
         this.controls.getObject().getWorldDirection(cameraDirection);
@@ -329,7 +336,9 @@ export default class CharacterController {
 
         const physics = PhysicsManager.getInstance()
 
-        const displacement = this.velocity.clone().multiplyScalar(deltaTime * 75)
+
+        const speedMod = this.isFlyMode ? 500 : 75
+        const displacement = this.velocity.clone().multiplyScalar(deltaTime * speedMod)
         const linVel = this.physicsObject.rigidBody.linvel()
         displacement.y = linVel.y
 

@@ -22,11 +22,11 @@ export class SpawnManager {
 
     spawnZombies() {
 
-        if(this.entities.length > 0) {
+        if(this.entities.length > 5) {
             return
         }
 
-        return
+       
 
         let enemy = new Enemy(this.scene)
         EntityManager.getInstance().add(enemy)

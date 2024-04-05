@@ -16,7 +16,7 @@ export default class PhysicsManager {
     private static instance: PhysicsManager
 
     constructor() {
-        this.gravity = new RAPIER.Vector3(0.0, -9.81, 0.0); // - 9.81
+        this.gravity = new RAPIER.Vector3(0.0, 0, 0.0); // - 9.81
         this.physicsWorld = new RAPIER.World(this.gravity);
     }
 
@@ -52,7 +52,7 @@ export default class PhysicsManager {
     }
 
     createPlayerCapsule(): PhysicsObject {
-        let rbDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 15, 0).lockRotations() //kinematicVelocityBased
+        let rbDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 40, 0).lockRotations() //kinematicVelocityBased
         let rigidBody = this.physicsWorld.createRigidBody(rbDesc)
 
         let halfHeight = 1.1 // weird s

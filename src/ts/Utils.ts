@@ -61,3 +61,64 @@ export const loadFBX = async (modelPath: string) => {
         );
     });
 };
+
+export const createTextureFrom2DArray = (data: number[][]): THREE.Texture => {
+    const width = data[0].length;
+    const height = data.length;
+
+    // Convert 2D array to 1D array
+    const pixelData = new Uint8ClampedArray(width * height * 4); // RGBA
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const value = data[y][x] * 255; // Scale value to [0, 255]
+            const index = (y * width + x) * 4; // Calculate index for RGBA
+            pixelData[index] = value; // Red
+            pixelData[index + 1] = value; // Green
+            pixelData[index + 2] = value; // Blue
+            pixelData[index + 3] = 255; // Alpha (fully opaque)
+        }
+    }
+
+    // Create ImageData object
+    const imageData = new ImageData(pixelData, width, height);
+
+    // Create canvas and draw the image data
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d') as any;
+    canvas.width = width;
+    canvas.height = height;
+    context.putImageData(imageData, 0, 0);
+
+    // Create Three.js texture from canvas
+    const texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true; // Ensure texture is updated
+
+    return texture;
+}
+
+export const createTextureFromColorMap = (colorMap: any, width: number, height: number) => {
+    
+    const imageData = new ImageData(colorMap, width, height);
+
+    // Create canvas and draw the image data
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d') as any;
+    canvas.width = width;
+    canvas.height = height;
+    context.putImageData(imageData, 0, 0);
+
+    // Create Three.js texture from canvas
+    const texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true; // Ensure texture is updated
+
+    return texture;
+}
+
+export const inverseLerp = (a: number, b: number, value: number): number => {
+    if (a != b) {
+        return (value - a) / (b - a);
+    } else {
+        return 0;
+    }
+}
