@@ -1,113 +1,106 @@
 import * as THREE from 'three'
 import Noise from './Noise'
 import { createTextureFrom2DArray, createTextureFromColorMap } from '../Utils'
-import MeshGenerator from './MeshGenerator'
+import { terrainMaterial } from './TerrainMaterial'
+import TerrainData from './data/TerrainData'
+import NoiseData from './data/NoiseData'
+import TextureData from './data/TextureData'
+import MapData from './data/MapData'
+import MeshData from './data/MeshData'
+import { NormalizeMode } from './enum/NormalizeMode'
+import FalloffGenerator from './FalloffGenerator'
 
 export default class MapGenerator {
 
     private scene: THREE.Scene
 
     public mapChunkSize: number = 241
-    public levelOfDetail: number = 1
-    public noiseScale: number = 50
-
-    public octaves: number = 5
-    public persistance: number = 0.5
-    public lacunarity: number = 2
-
-    public meshHeightMulitplier: number = 15
-
-    public offset: THREE.Vector2 = new THREE.Vector2(0,0)
-
-    private seed: number = 5412
-
-    public regions: Array<TerrainType>
+    public levelOfDetail: number = 2
 
     public drawMode: DrawMode = DrawMode.Mesh
 
+    public terrainData: TerrainData
+    public noiseData: NoiseData
+    public textureData: TextureData
+
+    public normalizeMode: NormalizeMode = NormalizeMode.Global
+    public useFalloff: boolean = true
+
+    private worker: Worker
+
+    public falloffMap: number[][] = []
+
+    private callbacks: { [id: string]: (data: any) => void } = {}; // for worker thread callback storage
+    private currentRequestId: number = 0;
+    
     constructor(scene: THREE.Scene) {
         this.scene = scene
 
-        this.regions = [
-            {
-                name: 'Snow',
-                height: 0.3,
-                color: new THREE.Color(0xffffff)
-            },
-            {
-                name: 'Rocks',
-                height: 0.4,
-                color: new THREE.Color(0x665432)
-            },
-            {
-                name: 'Grass',
-                height: 0.45,
-                color: new THREE.Color(0x5dab48)
-            },
-            {
-                name: 'Sand',
-                height: 0.55,
-                color: new THREE.Color(0xf7c95c)
-            },
-            {
-                name: 'Water Shallow',
-                height: 0.8,
-                color: new THREE.Color(0x4287f5)
-            },
-            {
-                name: 'Water Deep',
-                height: 1,
-                color: new THREE.Color(0x1251b5)
-            }
-        ];
-        
+        this.terrainData = new TerrainData(20, 2.5) // meshHeightMulitplier, scale
+        this.noiseData = new NoiseData(150, 5, 0.5, 2, 0, new THREE.Vector2(0,0)) // noiseScale, octaves, persistance, lacunarity, seed, offsetVec2
+        this.textureData = new TextureData()
 
-        //this.regions.reverse()
-        //console.log(this.regions)
+        this.worker = new Worker('src/ts/terrain/workers/worker.js', { type: "module" });
 
-        this.generateMap()
+        this.worker.onmessage = this.handleWorkerMessage.bind(this);
 
+        this.falloffMap = FalloffGenerator.generateFalloffMap(this.mapChunkSize)
     }
 
-    generateMap() {
-        const noiseMap = new Noise().generateNoiseMap(this.mapChunkSize, this.mapChunkSize, this.seed, this.noiseScale, this.octaves, this.persistance, this.lacunarity, this.offset);
-        const colorMap = new Uint8ClampedArray(this.mapChunkSize * this.mapChunkSize * 4); // 4 channels: RGBA
-    
-        for (let y = 0; y < this.mapChunkSize; y++) {
-            for (let x = 0; x < this.mapChunkSize; x++) {
-                const currentHeight = noiseMap[y][x]; // Access noiseMap using [y][x] for correct indexing
-                for (let i = 0; i < this.regions.length; i++) {
-                    if (currentHeight <= this.regions[i].height) {
-                        // if(this.regions[i].height < 0.4) {
-                        //     this.regions[i].height = 
-                        // }
-                        const color = this.regions[i].color;
-                        // Assign color channels to colorMap
-                        const index = (y * this.mapChunkSize + x) * 4; // Calculate index for RGBA
-                        colorMap[index] = color.r * 255; // Red channel
-                        colorMap[index + 1] = color.g * 255; // Green channel
-                        colorMap[index + 2] = color.b * 255; // Blue channel
-                        colorMap[index + 3] = 255; // Alpha channel (fully opaque)
-                        break;
-                    }
-                }
-            }
-        }
+    private handleWorkerMessage(event: MessageEvent) {
+        const { data, requestId } = event.data;
+        const callback = this.callbacks[requestId];
+        if (callback && typeof callback === 'function') {
+            
+            let { meshHeight, meshWidth, triangleIndex, triangles, uvs, vertices } = data
 
-        if (this.drawMode === DrawMode.NoiseMap) {
-            this.display(noiseMap);
-        } else if (this.drawMode == DrawMode.ColorMap) {
-            this.displayColorMap(colorMap);
-        }
-        else {
-            let lala = MeshGenerator.generateTerrainMesh(noiseMap, this.meshHeightMulitplier, this.levelOfDetail)
+            let md = new MeshData(meshWidth, meshHeight)
+            md.triangleIndex = triangleIndex
+            md.triangles = triangles
+            md.uvs = uvs
+            md.vertices = vertices
 
-            let texture = createTextureFromColorMap(colorMap, this.mapChunkSize, this.mapChunkSize)
-            texture.minFilter = THREE.NearestFilter;
-            texture.magFilter = THREE.NearestFilter;
-            this.displayMesh(lala, texture)
+            callback(md);
+            delete this.callbacks[requestId];
         }
     }
+
+    requestMeshFromData(center: THREE.Vector2, callback: (meshData: MeshData) => void) {
+        const requestId = this.getNextRequestId();
+        this.callbacks[requestId] = callback;
+
+        const messageData = {
+            requestId: requestId,
+            mapChunkSize: this.mapChunkSize,
+            noiseData: this.noiseData,
+            terrainData: this.terrainData,
+            levelOfDetail: this.levelOfDetail,
+            center: center,
+            useFalloff: this.useFalloff,
+            falloffMap: this.falloffMap
+        };
+
+        this.worker.postMessage(messageData);
+    }
+
+    private getNextRequestId(): string {
+        return String(this.currentRequestId++);
+    }
+
+    // generateMapData(): MapData {
+    //     let newOffset = new THREE.Vector2()
+    //     newOffset.copy(this.noiseData.offset).add(this.)
+    //     const noiseMap = new Noise().generateNoiseMap(this.mapChunkSize, this.mapChunkSize, this.noiseData.seed, this.noiseData.noiseScale, this.noiseData.octaves, this.noiseData.persistance, this.noiseData.lacunarity, this.noiseData.offset, this.normalizeMode);
+
+    //     for (let y = 0; y < this.mapChunkSize; y++) {
+    //         for (let x = 0; x < this.mapChunkSize; x++) {
+    //             if(this.useFalloff) {
+    //                 noiseMap[x][y] = THREE.MathUtils.clamp(noiseMap[x][y] - this.falloffMap[x][y], 0, 1)
+    //             }
+    //         }
+    //     }
+    //     return new MapData(noiseMap)
+    // }
     
 
     display(noiseMap: number[][]) {
@@ -139,12 +132,19 @@ export default class MapGenerator {
 
     }
 
-    displayMesh(meshData: any, texture: THREE.Texture) {
-        let mesh = meshData.createMesh()
-        mesh.material = new THREE.MeshBasicMaterial({map: texture, wireframe: false})
-
-        this.scene.add(mesh)
-        //console.log(mesh, "MESSHHSHSHS")
+    displayMesh(meshData: any) {
+        let mesh = meshData.createMesh();
+    
+        // Use MeshStandardMaterial for more realistic lighting
+        //mesh.material = new THREE.MeshStandardMaterial({ map: texture });
+        mesh.material = terrainMaterial
+        mesh.material.uniforms.minHeight.value = 0
+        mesh.material.uniforms.maxHeight.value = 100
+        // Properly position and rotate the mesh
+        //mesh.rotation.x = -Math.PI / 2; // Rotate to lay flat on the ground
+        mesh.position.set(0, 0, 0); // Set position as needed
+        mesh.scale.set(this.terrainData.uniformScale, this.terrainData.uniformScale, this.terrainData.uniformScale)
+        this.scene.add(mesh);
     }
 }
 
@@ -152,10 +152,4 @@ enum DrawMode {
     NoiseMap,
     ColorMap,
     Mesh
-}
-
-interface TerrainType {
-    name: string,
-    height: number,
-    color: THREE.Color
 }

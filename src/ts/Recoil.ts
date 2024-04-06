@@ -7,7 +7,7 @@ export default class Recoil extends THREE.Object3D {
     private targetRotation: THREE.Quaternion = new THREE.Quaternion();
 
     private snappiness: number = 12;
-    private returnSpeed: number = 4;
+    private returnSpeed: number = 8;
 
     private camera: THREE.Camera
 

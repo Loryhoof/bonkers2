@@ -17,7 +17,7 @@ import Terrain from './Terrain'
 import Enemy from './Enemy'
 import { listener } from './AudioManager'
 import { SpawnManager } from './SpawnManager'
-import EndlessTerrain from './EndlessTerrain'
+import EndlessTerrain from './terrain/EndlessTerrain'
 import MapGenerator from './terrain/MapGenerator'
 
 const loader = new GLTFLoader()
@@ -100,11 +100,12 @@ export default class World {
         this.entityManager.add(player)
         this.scene.add(player)
 
-        //this.endlessTerrain = new EndlessTerrain(this.scene, player)
+        this.endlessTerrain = new EndlessTerrain(this.scene, player)
 
         
 
-        this.mapGenerator = new MapGenerator(this.scene)
+        //this.mapGenerator = new MapGenerator(this.scene)
+        //this.endlessTerrain = nwe E
         // let enemy2 = new Enemy(this.scene)
         // this.entityManager.add(enemy2)
         // this.scene.add(enemy2)

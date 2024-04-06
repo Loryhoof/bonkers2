@@ -337,7 +337,7 @@ export default class CharacterController {
         const physics = PhysicsManager.getInstance()
 
 
-        const speedMod = this.isFlyMode ? 500 : 75
+        const speedMod = this.isFlyMode ? 1500 : 75
         const displacement = this.velocity.clone().multiplyScalar(deltaTime * speedMod)
         const linVel = this.physicsObject.rigidBody.linvel()
         displacement.y = linVel.y

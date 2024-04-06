@@ -71,7 +71,7 @@ export const createTextureFrom2DArray = (data: number[][]): THREE.Texture => {
 
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-            const value = data[y][x] * 255; // Scale value to [0, 255]
+            const value = data[x][y] * 255; // Scale value to [0, 255]
             const index = (y * width + x) * 4; // Calculate index for RGBA
             pixelData[index] = value; // Red
             pixelData[index + 1] = value; // Green

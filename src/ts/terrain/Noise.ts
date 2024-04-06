@@ -1,8 +1,8 @@
 import seedrandom from 'seedrandom';
 import * as THREE from 'three';
-import { SimplexNoise } from 'three/examples/jsm/Addons.js';
-import { ImprovedNoise } from 'three/examples/jsm/Addons.js';
-
+import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
+import { clamp, inverseLerp } from 'three/src/math/MathUtils.js';
+import { NormalizeMode } from './enum/NormalizeMode';
 
 export default class Noise {
 
@@ -14,76 +14,83 @@ export default class Noise {
         octaves: number,
         persistance: number,
         lacunarity: number,
-        offset: THREE.Vector2
+        offset: THREE.Vector2,
+        normalizeMode: NormalizeMode
     ): number[][] {
         let simplex = new SimplexNoise();
-        let ns = new ImprovedNoise()
         
-        let noiseMap: number[][] = [];
+        let noiseMap: number[][] = new Array(mapWidth);
+        
+        // Seeded pseudo-random number generator
+        let prng = seedrandom(seed.toString());
 
-        let prng = seedrandom(seed.toString())
+        let octaveOffsets: THREE.Vector2[] = [];
 
-        function prngNext(min: number, max: number): number {
-            // Calculate the range and generate a random number within the range
-            const range = max - min;
-            return Math.floor(prng() * range) + min;
-        }
-
-        let octaveOffsets = []
+        let maxPossibleHeight = 0
+        let amplitude = 1;
+        let frequency = 1;
 
         for (let i = 0; i < octaves; i++) {
-            let offsetX = prngNext(-100000, 100000) + offset.x
-            let offsetY = prngNext(-100000, 100000) + offset.y
-            octaveOffsets[i] = new THREE.Vector2(offsetX, offsetY)
-            console.log(octaveOffsets[i])
+            let offsetX = prng() * 200000 - 100000 + offset.x;
+            let offsetY = prng() * 200000 - 100000 - offset.y;
+            octaveOffsets.push(new THREE.Vector2(offsetX, offsetY));
+
+            maxPossibleHeight += amplitude
+            amplitude *= persistance
         }
 
         if (scale <= 0) {
             scale = 0.0001;
         }
 
-        let maxNoiseHeight = -Infinity;
-        let minNoiseHeight = Infinity;
+        let maxLocalNoiseHeight = -Infinity;
+        let minLocalNoiseHeight = Infinity;
 
-        let halfWidth = mapWidth / 2
-        let halfHeight = mapHeight / 2
+        
+
+        let halfWidth = mapWidth / 2;
+        let halfHeight = mapHeight / 2;
 
         // Generate the noise map
-        for (let y = 0; y < mapHeight; y++) {
-            noiseMap[y] = [];
-            for (let x = 0; x < mapWidth; x++) {
-
-                let amplitude = 1;
-                let frequency = 1;
+        for (let x = 0; x < mapWidth; x++) {
+            noiseMap[x] = [];
+            for (let y = 0; y < mapHeight; y++) {
+                amplitude = 1
+                frequency = 1
                 let noiseHeight = 0;
-
+        
                 for (let i = 0; i < octaves; i++) {
-                    let sampleX = (x - halfWidth) / scale * frequency + octaveOffsets[i].x
-                    let sampleY = (y - halfHeight) / scale * frequency + octaveOffsets[i].y
+                    let sampleX = (x - halfWidth + octaveOffsets[i].x) / scale * frequency;
+                    let sampleY = (y - halfHeight + octaveOffsets[i].y) / scale * frequency;
                     
-                    //let perlinValue = simplex.noise(sampleX, sampleY) * 2 - 1; 
-                    let perlinValue = ns.noise(sampleX, sampleY, 0) * 2 - 1; 
+                    let perlinValue = simplex.noise(sampleX, sampleY); // Using Simplex noise
                     noiseHeight += perlinValue * amplitude;
-
+        
                     amplitude *= persistance;
                     frequency *= lacunarity;
                 }
-
-                if (noiseHeight > maxNoiseHeight) {
-                    maxNoiseHeight = noiseHeight;
-                } else if (noiseHeight < minNoiseHeight) {
-                    minNoiseHeight = noiseHeight;
+        
+                if (noiseHeight > maxLocalNoiseHeight) {
+                    maxLocalNoiseHeight = noiseHeight;
+                } else if (noiseHeight < minLocalNoiseHeight) {
+                    minLocalNoiseHeight = noiseHeight;
                 }
-
-                noiseMap[y][x] = noiseHeight;
+        
+                noiseMap[x][y] = noiseHeight;
             }
         }
 
         // Normalize the noise map
-        for (let y = 0; y < mapHeight; y++) {
-            for (let x = 0; x < mapWidth; x++) {
-                // Normalize the value to the range [0, 1]
-                noiseMap[y][x] = (noiseMap[y][x] - minNoiseHeight) / (maxNoiseHeight - minNoiseHeight);
+        for (let x = 0; x < mapWidth; x++) {
+            for (let y = 0; y < mapHeight; y++) {
+                if(normalizeMode == NormalizeMode.Local) {
+                    //[x][y] = (noiseMap[x][y] - minLocalNoiseHeight) / (maxLocalNoiseHeight - minLocalNoiseHeight);
+                    [x][y] = inverseLerp(minLocalNoiseHeight, maxLocalNoiseHeight, noiseMap[x][y])
+                }
+                else {
+                    let normalizedHeight = (noiseMap[x][y] + 1) / (maxPossibleHeight)
+                    noiseMap[x][y] = THREE.MathUtils.clamp(normalizedHeight, 0, Infinity)
+                }
             }
         }
 
