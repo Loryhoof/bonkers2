@@ -24,7 +24,7 @@ export default class MapGenerator {
     public textureData: TextureData
 
     public normalizeMode: NormalizeMode = NormalizeMode.Global
-    public useFalloff: boolean = true
+    public useFalloff: boolean = false
 
     private worker: Worker
 
@@ -36,7 +36,7 @@ export default class MapGenerator {
     constructor(scene: THREE.Scene) {
         this.scene = scene
 
-        this.terrainData = new TerrainData(20, 2.5) // meshHeightMulitplier, scale
+        this.terrainData = new TerrainData(20, 0.5) // meshHeightMulitplier, scale
         this.noiseData = new NoiseData(150, 5, 0.5, 2, 0, new THREE.Vector2(0,0)) // noiseScale, octaves, persistance, lacunarity, seed, offsetVec2
         this.textureData = new TextureData()
 
@@ -48,7 +48,7 @@ export default class MapGenerator {
     }
 
     private handleWorkerMessage(event: MessageEvent) {
-        const { data, requestId } = event.data;
+        const { data, requestId, noiseData } = event.data;
         const callback = this.callbacks[requestId];
         if (callback && typeof callback === 'function') {
             
@@ -60,12 +60,12 @@ export default class MapGenerator {
             md.uvs = uvs
             md.vertices = vertices
 
-            callback(md);
+            callback({md: md, nm: noiseData});
             delete this.callbacks[requestId];
         }
     }
 
-    requestMeshFromData(center: THREE.Vector2, callback: (meshData: MeshData) => void) {
+    requestMeshFromData(center: THREE.Vector2, lod: number, callback: (meshData: MeshData) => void) {
         const requestId = this.getNextRequestId();
         this.callbacks[requestId] = callback;
 
@@ -74,7 +74,7 @@ export default class MapGenerator {
             mapChunkSize: this.mapChunkSize,
             noiseData: this.noiseData,
             terrainData: this.terrainData,
-            levelOfDetail: this.levelOfDetail,
+            levelOfDetail: lod,
             center: center,
             useFalloff: this.useFalloff,
             falloffMap: this.falloffMap

@@ -43,7 +43,7 @@ export default class MeshData {
         geometry.setIndex(new THREE.BufferAttribute(trianglesArray, 1));
 
         // Set UVs attribute
-        const uvsArray = this.uvs.flatMap(uv => [uv.x, uv.y]);
+        const uvsArray = this.uvs.flatMap(uv => [uv.y, uv.y]);
         geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvsArray), 2));
 
         geometry.computeVertexNormals();

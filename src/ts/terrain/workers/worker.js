@@ -4,13 +4,15 @@ import MeshData from '../data/MeshData'
 import * as THREE from 'three'
 
 function generateMapData(mapChunkSize, noiseData, terrainData, center, useFalloff, falloffMap) {
-    //console.log(offset)
+   
+    //console.log(center)
     let newOffset = new THREE.Vector2()
     newOffset.copy(noiseData.offset).add(center)
 
     //console.log(newOffset)
     const noiseMap = new Noise().generateNoiseMap(mapChunkSize, mapChunkSize, noiseData.seed, noiseData.noiseScale, noiseData.octaves, noiseData.persistance, noiseData.lacunarity, newOffset);
 
+    //console.log(noiseMap)
     if(useFalloff) {
         for (let y = 0; y < mapChunkSize; y++) {
             for (let x = 0; x < mapChunkSize; x++) {
@@ -30,7 +32,7 @@ function generateTerrainMesh(heightMap, heightMultiplier = 15, levelOfDetail = 6
     const topLeftZ = (height - 1) / 2;
 
     const meshSimplificationIncrement = levelOfDetail == 0 ? 1 : levelOfDetail * 2;
-    const verticesPerLine = Math.floor((width - 1) / meshSimplificationIncrement) + 1;
+    const verticesPerLine = Math.ceil((width - 1) / meshSimplificationIncrement) + 1;
 
     const meshData = new MeshData(verticesPerLine, verticesPerLine);
     let vertexIndex = 0;
@@ -64,5 +66,5 @@ self.onmessage = (event) => {
 
     let result = generateTerrainMesh(mapData, terrainData.meshHeightMulitplier, levelOfDetail)
 
-    self.postMessage({data: result, requestId: requestId});
+    self.postMessage({data: result, requestId: requestId, noiseData: mapData});
 };

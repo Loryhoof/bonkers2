@@ -1,8 +1,11 @@
 import seedrandom from 'seedrandom';
 import * as THREE from 'three';
 import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
-import { clamp, inverseLerp } from 'three/src/math/MathUtils.js';
+import { MathUtils } from 'three/src/math/MathUtils.js';
 import { NormalizeMode } from './enum/NormalizeMode';
+import Perlin from './data/perlin';
+
+
 
 export default class Noise {
 
@@ -20,15 +23,20 @@ export default class Noise {
         let simplex = new SimplexNoise();
         
         let noiseMap: number[][] = new Array(mapWidth);
+
+        var noise = new Noise
         
-        // Seeded pseudo-random number generator
         let prng = seedrandom(seed.toString());
+
+        let perlin = new Perlin(prng())
 
         let octaveOffsets: THREE.Vector2[] = [];
 
         let maxPossibleHeight = 0
         let amplitude = 1;
         let frequency = 1;
+
+        
 
         for (let i = 0; i < octaves; i++) {
             let offsetX = prng() * 200000 - 100000 + offset.x;
@@ -46,8 +54,6 @@ export default class Noise {
         let maxLocalNoiseHeight = -Infinity;
         let minLocalNoiseHeight = Infinity;
 
-        
-
         let halfWidth = mapWidth / 2;
         let halfHeight = mapHeight / 2;
 
@@ -63,8 +69,9 @@ export default class Noise {
                     let sampleX = (x - halfWidth + octaveOffsets[i].x) / scale * frequency;
                     let sampleY = (y - halfHeight + octaveOffsets[i].y) / scale * frequency;
                     
-                    let perlinValue = simplex.noise(sampleX, sampleY); // Using Simplex noise
+                    let perlinValue = perlin.perlin2(sampleX, sampleY)
                     noiseHeight += perlinValue * amplitude;
+                    
         
                     amplitude *= persistance;
                     frequency *= lacunarity;
@@ -75,7 +82,7 @@ export default class Noise {
                 } else if (noiseHeight < minLocalNoiseHeight) {
                     minLocalNoiseHeight = noiseHeight;
                 }
-        
+
                 noiseMap[x][y] = noiseHeight;
             }
         }
@@ -84,13 +91,13 @@ export default class Noise {
         for (let x = 0; x < mapWidth; x++) {
             for (let y = 0; y < mapHeight; y++) {
                 if(normalizeMode == NormalizeMode.Local) {
-                    //[x][y] = (noiseMap[x][y] - minLocalNoiseHeight) / (maxLocalNoiseHeight - minLocalNoiseHeight);
-                    [x][y] = inverseLerp(minLocalNoiseHeight, maxLocalNoiseHeight, noiseMap[x][y])
+                    noiseMap[x][y] = MathUtils.inverseLerp(minLocalNoiseHeight, maxLocalNoiseHeight, noiseMap[x][y]);
                 }
                 else {
-                    let normalizedHeight = (noiseMap[x][y] + 1) / (maxPossibleHeight)
-                    noiseMap[x][y] = THREE.MathUtils.clamp(normalizedHeight, 0, Infinity)
+                    let normalizedHeight = (noiseMap[x][y] + 1) / (maxPossibleHeight/0.9);
+                    noiseMap[x][y] = MathUtils.clamp(normalizedHeight, 0, Infinity);
                 }
+                
             }
         }
 

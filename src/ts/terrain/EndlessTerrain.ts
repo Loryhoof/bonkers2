@@ -5,6 +5,9 @@ import { groundMaterial } from '../Ground'
 import MapGenerator from './MapGenerator'
 import MapData from './data/MapData'
 import MeshData from './data/MeshData'
+import RAPIER from '@dimforge/rapier3d'
+import PhysicsManager from '../PhysicsManager'
+import LODInfo from './data/LODInfo'
 
 const treePrefab = await loadGLB('models/tree.glb')
 
@@ -13,11 +16,17 @@ export default class EndlessTerrain {
     public static maxViewDistance: number = 240
     public viewer: THREE.Object3D
 
+    public viewerMoveThresholdForChunkUpdate: number = 25
+    public sqrViewerMoveThresholdForChunkUpdate: number = this.viewerMoveThresholdForChunkUpdate * this.viewerMoveThresholdForChunkUpdate
+
+    public detailLevels: LODInfo[]
+
     public scene: THREE.Scene
 
     public mapGenerator: MapGenerator
 
     public static viewerPosition: THREE.Vector2 = new THREE.Vector2()
+    public viewerPositionOld: THREE.Vector2 = new THREE.Vector2()
 
     private chunkSize: number = 240
     private chunksVisibleInViewDistance: number = Math.floor(EndlessTerrain.maxViewDistance / this.chunkSize)
@@ -26,28 +35,41 @@ export default class EndlessTerrain {
 
     private arr: Array<TerrainChunk> = []
 
-    private terrainChunksVisibleLastUpdate: Array<TerrainChunk> = []
-
-    public scale: number = 1
+    public static terrainChunksVisibleLastUpdate: Array<TerrainChunk> = []
 
     constructor(scene: THREE.Scene, viewer: THREE.Object3D) {
         this.scene = scene
         this.viewer = viewer
         this.mapGenerator = new MapGenerator(this.scene)
+
+        this.detailLevels = [
+            {lod: 4, visibleDistanceThreshold: 155},
+            {lod: 6, visibleDistanceThreshold: 180}
+        ]
+
+        EndlessTerrain.maxViewDistance = this.detailLevels[this.detailLevels.length-1].visibleDistanceThreshold
+        this.updateVisibleChunks()
     }
 
     update(elapsedTime: number, deltaTime: number) {
-        EndlessTerrain.viewerPosition = new THREE.Vector2(this.viewer.position.x, this.viewer.position.z).divideScalar(this.scale)
-        this.updateVisibleChunks()
+        EndlessTerrain.viewerPosition = new THREE.Vector2(this.viewer.position.x, this.viewer.position.z).divideScalar(this.mapGenerator.terrainData.uniformScale)
+        
+        const displacementVector = this.viewerPositionOld.clone().sub(EndlessTerrain.viewerPosition.clone());
+        const squareMagnitude = displacementVector.lengthSq();
+
+        if (squareMagnitude > this.sqrViewerMoveThresholdForChunkUpdate) {
+            this.viewerPositionOld.copy(EndlessTerrain.viewerPosition)
+            this.updateVisibleChunks()   
+        }
     }
 
     updateVisibleChunks() {
 
-        for (let i = 0; i < this.terrainChunksVisibleLastUpdate.length; i++) {
-            this.terrainChunksVisibleLastUpdate[i].setVisible(false)
+        for (let i = 0; i < EndlessTerrain.terrainChunksVisibleLastUpdate.length; i++) {
+            EndlessTerrain.terrainChunksVisibleLastUpdate[i].setVisible(false)
         }
 
-        this.terrainChunksVisibleLastUpdate = []
+        EndlessTerrain.terrainChunksVisibleLastUpdate = []
    
         let currentChunkCoordX = Math.floor(EndlessTerrain.viewerPosition.x / this.chunkSize)
         let currentChunkCoordY = Math.floor(EndlessTerrain.viewerPosition.y / this.chunkSize)
@@ -55,17 +77,18 @@ export default class EndlessTerrain {
         for (let yOffset = -this.chunksVisibleInViewDistance; yOffset <= this.chunksVisibleInViewDistance; yOffset++) {
             for (let xOffset = -this.chunksVisibleInViewDistance; xOffset <= this.chunksVisibleInViewDistance; xOffset++) {
                 let viewedChunkCoord = new THREE.Vector2(currentChunkCoordX + xOffset, currentChunkCoordY + yOffset)
+                
 
                 let stringifiedVector = JSON.stringify(viewedChunkCoord)
 
                 if(this.terrainChunkMap.has(stringifiedVector)) {
                     this.terrainChunkMap.get(stringifiedVector)?.updateTerrainChunk()
-                    if(this.terrainChunkMap.get(stringifiedVector)?.isVisible()) {
-                        this.terrainChunksVisibleLastUpdate.push(this.terrainChunkMap.get(stringifiedVector) as TerrainChunk)
-                    }
+                    // if(this.terrainChunkMap.get(stringifiedVector)?.isVisible()) {
+                    //     this.terrainChunksVisibleLastUpdate.push(this.terrainChunkMap.get(stringifiedVector) as TerrainChunk)
+                    // }
                 }
                 else {
-                    let chunka = new TerrainChunk(this, viewedChunkCoord, this.chunkSize)
+                    let chunka = new TerrainChunk(this, viewedChunkCoord, this.chunkSize, this.detailLevels)
                     this.terrainChunkMap.set(stringifiedVector, chunka)
                     this.arr.push(chunka)
                 }
@@ -86,9 +109,18 @@ class TerrainChunk {
     private coord: any
     private size: any
 
-    constructor(terrain: EndlessTerrain, coord: THREE.Vector2, size: number) {
+    public detailLevels: LODInfo[]
+    public lodMeshes: LODMesh[]
+
+    public mapData: MapData | any
+    public mapDataReceived: boolean = false
+    public previousLODIndex: number = -1
+
+    constructor(terrain: EndlessTerrain, coord: THREE.Vector2, size: number, detailLevels: LODInfo[]) {
         this.terrain = terrain
         let nsubdivs = 50
+
+        this.detailLevels = detailLevels
         //console.log(coord.multiplyScalar(size))
         this.position = coord.multiplyScalar(size)
         this.coord = coord
@@ -103,7 +135,16 @@ class TerrainChunk {
         //his.setVisible(false)
         //this.init(this.meshObject, size, nsubdivs)
 
-        this.terrain.mapGenerator.requestMeshFromData(this.position, (meshData: MeshData) => {
+        //console.log(this.position)
+        let tempLOD = 2
+
+        this.lodMeshes = new Array<LODMesh>(this.detailLevels.length)
+
+        for (let i = 0; i < this.detailLevels.length; i++) {
+            this.lodMeshes[i] = new LODMesh(this.terrain, this.detailLevels[i].lod, this.position, this.updateTerrainChunk)
+        }
+        
+        this.terrain.mapGenerator.requestMeshFromData(this.position, tempLOD, (meshData: MeshData) => {
             this.onMeshDataReceived(meshData);
         });
     }
@@ -116,7 +157,17 @@ class TerrainChunk {
     //     });
     // }
 
-    onMeshDataReceived(meshData: MeshData) {
+    onMeshDataReceived(data: any) {
+
+        let meshData = data.md
+        let noiseMap = data.nm
+
+        this.mapData = meshData
+        this.mapDataReceived = true
+
+        //meshData
+
+        //.log(data)
 
         let m = meshData.createMesh()
 
@@ -125,9 +176,25 @@ class TerrainChunk {
         this.meshObject.position.set(this.position.x, 0, this.position.y)
         this.meshObject.material = new THREE.MeshBasicMaterial({color: 0xffffff * Math.random(), wireframe: true})
         //this.meshObject.material = groundMaterial
-        this.meshObject.scale.copy(new THREE.Vector3(this.terrain.scale, this.terrain.scale, this.terrain.scale))
-        this.meshObject.position.multiplyScalar(this.terrain.scale)
+
+        this.meshObject.scale.copy(new THREE.Vector3(this.terrain.mapGenerator.terrainData.uniformScale, this.terrain.mapGenerator.terrainData.uniformScale, this.terrain.mapGenerator.terrainData.uniformScale))
+        this.meshObject.position.multiplyScalar(this.terrain.mapGenerator.terrainData.uniformScale)
         this.terrain.scene.add(this.meshObject)
+
+        // let h = noiseMap.length
+
+        // let lvl = 2
+        // const meshSimplificationIncrement = lvl == 0 ? 1 : lvl * 2;
+        // let hava = Math.ceil((241 - 1) / meshSimplificationIncrement) + 1;
+        // console.log(hava, "HAVHAH")
+        // console.log(h, "nosemei length")
+        // let groundBodyDesc = RAPIER.RigidBodyDesc.fixed();
+        // let groundBody = PhysicsManager.getInstance().physicsWorld.createRigidBody(groundBodyDesc);
+        // let groundCollider = RAPIER.ColliderDesc.heightfield(
+        //     240, 240, new Float32Array(noiseMap), new THREE.Vector3(241, 20,241)
+        // );
+        // PhysicsManager.getInstance().physicsWorld.createCollider(groundCollider, groundBody);
+        this.updateTerrainChunk()
     }
 
     init(obj: any, scale: number, nsubdivs: number) {
@@ -180,8 +247,44 @@ class TerrainChunk {
     }
 
     updateTerrainChunk() {
+        if(!this.mapDataReceived) {
+            return
+        }
+
         let viewerDistanceFromNearestEdge = this.bounds.distanceToPoint(EndlessTerrain.viewerPosition)
         let visible = viewerDistanceFromNearestEdge <= EndlessTerrain.maxViewDistance
+
+        if(visible) {
+            let lodIndex = 0
+            
+            for (let i = 0; i < this.detailLevels.length - 1; i++) {
+                if (viewerDistanceFromNearestEdge > this.detailLevels[i].visibleDistanceThreshold) {
+                    lodIndex = i+1
+                }
+                else {
+                    break
+                }
+            }
+
+            if(lodIndex != this.previousLODIndex) {
+                let lodMesh = this.lodMeshes[lodIndex]
+                if(lodMesh.hasMesh) {
+                    this.previousLODIndex = lodIndex
+                    this.meshObject.geometry = lodMesh.mesh.geometry
+                    //this.meshObject.position.set(this.position.x, 0, this.position.y)
+                    //this.meshObject.material = new THREE.MeshBasicMaterial({color: 0xffffff * Math.random(), wireframe: true})
+
+                    //this.meshObject.scale.copy(new THREE.Vector3(this.terrain.mapGenerator.terrainData.uniformScale, this.terrain.mapGenerator.terrainData.uniformScale, this.terrain.mapGenerator.terrainData.uniformScale))
+                    //this.meshObject.position.multiplyScalar(this.terrain.mapGenerator.terrainData.uniformScale)
+                    //this.terrain.scene.add(this.meshObject)
+                }
+                else if (!lodMesh.hasRequestedMesh) {
+                    lodMesh.requestMesh(this.mapData)
+                }
+            }
+            EndlessTerrain.terrainChunksVisibleLastUpdate.push(this)
+        }
+
         this.setVisible(visible)
     }
 
@@ -195,19 +298,40 @@ class TerrainChunk {
     
 }
 
-// class LODMesh {
+class LODMesh {
 
-//     public mesh: any
-//     public hasRequestedMesh: boolean
-//     public hasMesh: boolean
-//     public lod: number
+    public mesh: any
+    public hasRequestedMesh: boolean = false
+    public hasMesh: boolean = false
+    public lod: number
 
-//     constructor(lod: number) {
-//         this.lod = lod
-//     }
+    private terrain: EndlessTerrain
+    private position: THREE.Vector2
 
-//     requestMesh(mapData: MapData) {
-//         this.hasRequestedMesh = true
+    private onMeshReceivedCallback: (mesh: any) => void
+
+    constructor(terrain: EndlessTerrain, lod: number, position: THREE.Vector2, onMeshReceived: (mesh: any) => void) {
+        this.terrain = terrain
+        this.lod = lod
+        this.position = position
+
+        this.onMeshReceivedCallback = onMeshReceived
+    }
+
+    onMeshDataReceived(data: any) {
         
-//     }
-// }
+        let meshData = data.md
+        //console.log(meshData)
+        this.mesh = meshData.createMesh()
+        this.hasMesh = true
+    }
+
+    requestMesh(mapData: MapData) {
+        this.hasRequestedMesh = true
+
+        this.terrain.mapGenerator.requestMeshFromData(this.position, this.lod, (meshData: MeshData) => {
+            this.onMeshDataReceived(meshData);
+        });
+        
+    }
+}
