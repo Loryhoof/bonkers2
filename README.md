@@ -1,5 +1,8 @@
 # ThreeJS / TypeScript Game Project
 
+### Live Test:
+https://bonkers-ts.vercel.app/
+
 ## Current Features:
 - Shooting
 - Resource gathering
