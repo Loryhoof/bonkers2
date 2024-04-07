@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import { randomBetween, randomFrom } from '../../Utils';
 
 export default class MeshData {
     public vertices: THREE.Vector3[] = [];
@@ -15,11 +14,6 @@ export default class MeshData {
         this.vertices = new Array<THREE.Vector3>(meshWidth * meshHeight);
         this.uvs = new Array<THREE.Vector2>(meshWidth * meshHeight);
         this.triangles = new Array<number>((meshWidth - 1) * (meshHeight - 1) * 6);
-    }
-
-    public updateMeshHeight(material: THREE.ShaderMaterial, minHeight: number, maxHeight: number) {
-        material.uniforms.minHeight.value = minHeight
-        material.uniforms.maxHeight.value = maxHeight
     }
 
     public addTriangle(a: number, b: number, c: number) {
@@ -43,7 +37,7 @@ export default class MeshData {
         geometry.setIndex(new THREE.BufferAttribute(trianglesArray, 1));
 
         // Set UVs attribute
-        const uvsArray = this.uvs.flatMap(uv => [uv.y, uv.y]);
+        const uvsArray = this.uvs.flatMap(uv => [uv.x, uv.y]);
         geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvsArray), 2));
 
         geometry.computeVertexNormals();

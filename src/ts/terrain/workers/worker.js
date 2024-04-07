@@ -10,7 +10,7 @@ function generateMapData(mapChunkSize, noiseData, terrainData, center, useFallof
     newOffset.copy(noiseData.offset).add(center)
 
     //console.log(newOffset)
-    const noiseMap = new Noise().generateNoiseMap(mapChunkSize, mapChunkSize, noiseData.seed, noiseData.noiseScale, noiseData.octaves, noiseData.persistance, noiseData.lacunarity, newOffset);
+    const {noiseMap, minMaxHeight} = new Noise().generateNoiseMap(mapChunkSize, mapChunkSize, noiseData.seed, noiseData.noiseScale, noiseData.octaves, noiseData.persistance, noiseData.lacunarity, newOffset);
 
     //console.log(noiseMap)
     if(useFalloff) {
@@ -21,7 +21,7 @@ function generateMapData(mapChunkSize, noiseData, terrainData, center, useFallof
         }
     }
 
-    return noiseMap;
+    return { noiseMap, minMaxHeight };
 }
 
 function generateTerrainMesh(heightMap, heightMultiplier = 15, levelOfDetail = 6) {
@@ -62,9 +62,9 @@ self.onmessage = (event) => {
 
     const { mapChunkSize, noiseData, terrainData, levelOfDetail, requestId, center, useFalloff, falloffMap  } = event.data;
 
-    let mapData = generateMapData(mapChunkSize, noiseData, terrainData, center, useFalloff, falloffMap);
+    let {noiseMap, minMaxHeight} = generateMapData(mapChunkSize, noiseData, terrainData, center, useFalloff, falloffMap);
 
-    let result = generateTerrainMesh(mapData, terrainData.meshHeightMulitplier, levelOfDetail)
+    let result = generateTerrainMesh(noiseMap, terrainData.meshHeightMulitplier, levelOfDetail)
 
-    self.postMessage({data: result, requestId: requestId, noiseData: mapData});
+    self.postMessage({data: result, requestId: requestId, noiseData: noiseMap, minMaxHeight: minMaxHeight});
 };

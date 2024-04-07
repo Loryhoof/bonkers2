@@ -9,6 +9,27 @@ import Perlin from './data/perlin';
 
 export default class Noise {
 
+
+    findMinMaxHeight(noiseMap: number[][]): { min: number, max: number } {
+        let min = Infinity;
+        let max = -Infinity;
+
+        // Iterate through all height values in the noise map
+        for (let x = 0; x < noiseMap.length; x++) {
+            for (let y = 0; y < noiseMap[x].length; y++) {
+                let height = noiseMap[x][y];
+                if (height < min) {
+                    min = height; // Update min if current height is smaller
+                }
+                if (height > max) {
+                    max = height; // Update max if current height is larger
+                }
+            }
+        }
+
+        return { min, max };
+    }
+
     generateNoiseMap(
         mapWidth: number, 
         mapHeight: number,
@@ -19,7 +40,7 @@ export default class Noise {
         lacunarity: number,
         offset: THREE.Vector2,
         normalizeMode: NormalizeMode
-    ): number[][] {
+    ): { noiseMap: number[][], minMaxHeight: { min: number, max: number } }  {
         let simplex = new SimplexNoise();
         
         let noiseMap: number[][] = new Array(mapWidth);
@@ -101,6 +122,8 @@ export default class Noise {
             }
         }
 
-        return noiseMap;
+        let minMaxHeight = this.findMinMaxHeight(noiseMap);
+
+        return {noiseMap, minMaxHeight};
     }
 }

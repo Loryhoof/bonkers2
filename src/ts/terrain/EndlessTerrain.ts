@@ -1,16 +1,15 @@
 import * as THREE from 'three'
-import { SimplexNoise } from 'three/examples/jsm/Addons.js'
-import { loadGLB, randomFrom } from '../Utils'
-import { groundMaterial } from '../Ground'
+import { loadGLB } from '../Utils'
+import { groundMaterial } from './Ground'
 import MapGenerator from './MapGenerator'
 import MapData from './data/MapData'
 import MeshData from './data/MeshData'
 import RAPIER from '@dimforge/rapier3d'
 import PhysicsManager from '../PhysicsManager'
 import LODInfo from './data/LODInfo'
-import Perlin from './data/perlin'
+import { terrainMaterial } from './TerrainMaterial'
 
-const treePrefab = await loadGLB('models/tree.glb')
+//const treePrefab = await loadGLB('models/tree.glb')
 
 export default class EndlessTerrain {
     
@@ -38,7 +37,7 @@ export default class EndlessTerrain {
 
     public static terrainChunksVisibleLastUpdate: Array<TerrainChunk> = []
 
-    public showWireframe: boolean = true
+    public showWireframe: boolean = false
 
     constructor(scene: THREE.Scene, viewer: THREE.Object3D) {
         this.scene = scene
@@ -119,6 +118,9 @@ class TerrainChunk {
     public mapDataReceived: boolean = false
     public previousLODIndex: number = -1
 
+    public minHeight: number = 0
+    public maxHeight: number = 0
+
     constructor(terrain: EndlessTerrain, coord: THREE.Vector2, size: number, detailLevels: LODInfo[]) {
         this.terrain = terrain
 
@@ -164,6 +166,11 @@ class TerrainChunk {
         let meshData = data.md
         let noiseMap = data.nm
 
+        this.minHeight = data.minHeight * this.terrain.mapGenerator.terrainData.uniformScale * this.terrain.mapGenerator.terrainData.meshHeightMulitplier
+        this.maxHeight = data.maxHeight * this.terrain.mapGenerator.terrainData.uniformScale * this.terrain.mapGenerator.terrainData.meshHeightMulitplier
+
+        //console.log(this.minHeight, this.maxHeight)
+
         this.mapData = meshData
         this.mapDataReceived = true
 
@@ -177,13 +184,19 @@ class TerrainChunk {
 
         this.meshObject.position.set(this.position.x, 0, this.position.y)
         //this.meshObject.material = new THREE.MeshBasicMaterial({color: 0xffffff * Math.random(), wireframe: this.terrain.showWireframe})
-        this.meshObject.material = groundMaterial
+        this.meshObject.material = terrainMaterial
+        this.meshObject.material.uniforms.minHeight.value = 0//this.terrain.mapGenerator.terrainData.uniformScale * this.terrain.mapGenerator.terrainData.meshHeightMulitplier //this.minHeight
+        this.meshObject.material.uniforms.maxHeight.value =  this.terrain.mapGenerator.terrainData.uniformScale * this.terrain.mapGenerator.terrainData.meshHeightMulitplier//this.maxHeight
+
+        //console.log(this.terrain.mapGenerator.terrainData.interpolateHeight(this.terrain.mapGenerator.terrainData.minHeight, this.terrain.mapGenerator.terrainData.maxHeight, 0.1))
 
         this.meshObject.material.wireframe = this.terrain.showWireframe;
 
         this.meshObject.scale.copy(new THREE.Vector3(this.terrain.mapGenerator.terrainData.uniformScale, this.terrain.mapGenerator.terrainData.uniformScale, this.terrain.mapGenerator.terrainData.uniformScale))
         this.meshObject.position.multiplyScalar(this.terrain.mapGenerator.terrainData.uniformScale)
         this.terrain.scene.add(this.meshObject)
+
+        this.meshObject.geometry.update
 
         this.updateTerrainChunk()
         this.makeCollider(this.meshObject.geometry.attributes.position.array, meshData, this.meshObject.position)

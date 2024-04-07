@@ -409,7 +409,7 @@ export default class CharacterController {
 
     respawn() {
         if(this.physicsObject) {
-            PhysicsManager.getInstance().setTranslation(this.physicsObject, new THREE.Vector3(0, 40, 0))
+            PhysicsManager.getInstance().setTranslation(this.physicsObject, new THREE.Vector3(0, 100, 0))
         }
     }
 

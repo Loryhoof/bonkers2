@@ -46,8 +46,8 @@ fog: true,
 });
 
 
-// Create a sphere geometry to represent the sky
-const skyGeometry = new THREE.SphereGeometry(1000, 0, 0);
+// Adjust the size of the sky sphere geometry
+const skyGeometry = new THREE.SphereGeometry(5000, 32, 32); // Increase the radius to 5000
 
 // Create the sky mesh using the sphere geometry and the shader material
 export const sky = new THREE.Mesh(skyGeometry, skyMaterial);

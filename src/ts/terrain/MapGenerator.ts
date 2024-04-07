@@ -36,8 +36,8 @@ export default class MapGenerator {
     constructor(scene: THREE.Scene) {
         this.scene = scene
 
-        this.terrainData = new TerrainData(25, 1) // meshHeightMulitplier, scale
-        this.noiseData = new NoiseData(50, 8, 0.3, 2, 0, new THREE.Vector2(0,0)) // noiseScale, octaves, persistance, lacunarity, seed, offsetVec2
+        this.terrainData = new TerrainData(50, 1) // meshHeightMulitplier, scale
+        this.noiseData = new NoiseData(100, 5, 0.3, 2, 0, new THREE.Vector2(0,0)) // noiseScale, octaves, persistance, lacunarity, seed, offsetVec2
         this.textureData = new TextureData()
 
         this.worker = new Worker('src/ts/terrain/workers/worker.js', { type: "module" });
@@ -48,7 +48,7 @@ export default class MapGenerator {
     }
 
     private handleWorkerMessage(event: MessageEvent) {
-        const { data, requestId, noiseData } = event.data;
+        const { data, requestId, noiseData, minMaxHeight } = event.data;
         const callback = this.callbacks[requestId];
         if (callback && typeof callback === 'function') {
             
@@ -60,7 +60,11 @@ export default class MapGenerator {
             md.uvs = uvs
             md.vertices = vertices
 
-            callback({md: md, nm: noiseData});
+            //this.terrainData.setHeight(minMaxHeight.min, minMaxHeight.max)
+
+            //console.log(this.terrainData)
+
+            callback({md: md, nm: noiseData, minHeight: minMaxHeight.min, maxHeight: minMaxHeight.max});
             delete this.callbacks[requestId];
         }
     }

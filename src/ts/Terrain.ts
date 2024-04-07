@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import PhysicsManager from './PhysicsManager';
 import RAPIER from '@dimforge/rapier3d';
 import { SimplexNoise } from 'three/examples/jsm/Addons.js';
-import { groundMaterial } from './Ground';
+import { groundMaterial } from './terrain/Ground';
 import { loadGLB, randomBetween, randomFrom } from './Utils';
 import { math } from './math';
 import Tree from './Tree';

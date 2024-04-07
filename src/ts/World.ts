@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import PhysicsManager from './PhysicsManager'
 import { sky } from './Sky'
-import { groundMaterial } from './Ground'
+import { groundMaterial } from './terrain/Ground'
 import Player from './Player'
 import Pistol from './Pistol'
 import UIManager from './UIManager'
@@ -78,7 +78,7 @@ export default class World {
         this.scene.add(ambientLight)
         this.scene.add(light)
         //this.scene.fog = new THREE.Fog( 0xcccccc, 10, 15 );
-        //this.scene.fog = new THREE.FogExp2(0xcccccc, 0.02)
+        this.scene.fog = new THREE.FogExp2(0xcccccc, 0.005)
         //this.scene.add()
         //this.scene.add(cube)
 

@@ -11,7 +11,7 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(width, height)
 document.body.appendChild (renderer.domElement)
 
-const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
+const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000)
 const scene = new THREE.Scene()
 const clock = new THREE.Clock();
 

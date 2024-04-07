@@ -1,45 +1,66 @@
 import * as THREE from 'three';
 
+
+const textureLoader = new THREE.TextureLoader();
+
+const groundTexture1 = textureLoader.load('grass.jpg');
+groundTexture1.wrapS = THREE.RepeatWrapping; // Repeat the texture in S direction
+groundTexture1.wrapT = THREE.RepeatWrapping; // Repeat the texture in T direction
+
+const groundTexture2 = textureLoader.load('dirt.jpg');
+groundTexture2.wrapS = THREE.RepeatWrapping; // Repeat the texture in S direction
+groundTexture2.wrapT = THREE.RepeatWrapping; // Repeat the texture in T direction
+
+const textures = [
+    groundTexture2,
+    groundTexture1,
+];
+
+const colors = [
+    new THREE.Color(0x2ea8ff), // lowest
+    new THREE.Color(0x85a832),
+    new THREE.Color(0x694825), 
+    new THREE.Color(0x66625b),
+    new THREE.Color(0xffffff) // highest
+];
+
+const heights = [
+    0.5, 
+    0.6
+]; // Adjust these heights as needed
+
 const groundVertexShader = `
     #include <fog_pars_vertex>
-    
+
+
     varying vec2 vUv;
-    varying vec3 worldPos;
+    varying float heightPercent;
+
+    uniform float minHeight;
+    uniform float maxHeight;
 
     void main() {
         #include <begin_vertex>
         #include <project_vertex>
         #include <fog_vertex>
 
-        worldPos = position;
-
         vUv = uv * 200.0;
+        heightPercent = (position.y - minHeight) / (maxHeight - minHeight);
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
 `;
 
 const groundFragmentShader = `
+
     #include <fog_pars_fragment>
+    varying vec2 vUv;
+    varying float heightPercent;
 
-    uniform int baseColorCount;
-    uniform vec3 baseColors[1];
-    uniform float baseStartHeights[1];
-    uniform float minHeight;
-    uniform float maxHeight;
-
-    varying vec3 worldPos;
-
-    uniform sampler2D groundTexture1;
-    uniform sampler2D groundTexture2;
 
     float random(vec2 st) {
         return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
     }
-
-    float inverseLerp(float a, float b, float value) {
-        return clamp((value - a) / (b - a), 0.0, 1.0);
-    }
-
+    
     float noise(vec2 st) {
         vec2 i = floor(st);
         vec2 f = fract(st);
@@ -54,43 +75,57 @@ const groundFragmentShader = `
         return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
     }
 
+    
+
+    uniform sampler2D textureLow;
+    uniform sampler2D textureHigh;
+
+    uniform float heights[${heights.length}];
+
     void main() {
 
-        float heightPercent = inverseLerp(minHeight, maxHeight, worldPos.y);
-        vec3 finalColor = vec3(0.0);
+        vec2 uv = vUv; // UV coordinates adjusted to make the texture "smaller"
+        float n = noise(uv); // Generate Perlin noise for each patch
 
-        for (int i = 0; i < baseColorCount; i++) {
-            float drawStrength = clamp(sign(heightPercent - baseStartHeights[i]), 0.0, 1.0);
-            finalColor += mix(vec3(0.0), baseColors[i], drawStrength);
+        vec4 colorLow = texture2D(textureLow, vUv);
+        vec4 colorHigh = texture2D(textureHigh, vUv);
+    
+        vec4 finalColor;
+
+        //float blendFactor = smoothstep(0.1, 0.9, n); // Adjust these values for smoother or more abrupt transitions
+        // gl_FragColor = mix(texture1Color, texture2Color, blendFactor);
+
+        if (heightPercent < 0.4) {
+            finalColor = mix(colorLow, colorHigh, heightPercent * 2.0);
+        } else {
+            finalColor = mix(colorHigh, colorLow, (heightPercent - 0.5) * 2.0);
         }
+    
+        gl_FragColor = finalColor;
 
-        gl_FragColor = vec4(finalColor, 1.0);
+        #include <fog_fragment>
     }
 `;
 
-const textureLoader = new THREE.TextureLoader();
 
-const groundTexture1 = textureLoader.load('grass.jpg');
-groundTexture1.wrapS = THREE.RepeatWrapping; // Repeat the texture in S direction
-groundTexture1.wrapT = THREE.RepeatWrapping; // Repeat the texture in T direction
 
-const groundTexture2 = textureLoader.load('dirt.jpg');
-groundTexture2.wrapS = THREE.RepeatWrapping; // Repeat the texture in S direction
-groundTexture2.wrapT = THREE.RepeatWrapping; // Repeat the texture in T direction
+
+
 
 const groundUniforms = {
-    groundTexture1: { value: groundTexture1 },
-    groundTexture2: { value: groundTexture2 },
-
-    baseColorCount: { value: 2 },
-    baseColors: { value: [new THREE.Color(.4,0,1), new THREE.Vector3(0.5, 0, 1)] },
-    baseStartHeights: { value: [0.2, 0.4] },
+    colors: { value: colors },
+    heights: { value: heights },
     minHeight: { value: 0.0 },
-    maxHeight: { value: 15.0 }
+    maxHeight: { value: 25.0 },
+    textureLow: { value: textures[0] },
+    textureHigh: { value: textures[1] }
 };
 
 export const terrainMaterial = new THREE.ShaderMaterial({
     vertexShader: groundVertexShader,
     fragmentShader: groundFragmentShader,
-    uniforms: groundUniforms
+    uniforms: THREE.UniformsUtils.merge( [
+        THREE.UniformsLib[ 'fog' ], groundUniforms
+] ),
+fog: true
 });

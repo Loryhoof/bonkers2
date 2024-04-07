@@ -2,8 +2,8 @@ import * as THREE from "three"
 
 export default class TextureData {
 
-    // public meshHeightMulitplier: number = 25
-    // public uniformScale: number = 0
+    private savedMinHeight: number = 0
+    private savedMaxHeight: number = 0
 
     // constructor(
     //     meshHeightMulitplier: number,
@@ -12,7 +12,17 @@ export default class TextureData {
     //     this.meshHeightMulitplier = meshHeightMulitplier
     //     this.uniformScale = scale
     // }
-    applyToMaterial(material: THREE.ShaderMaterial) {
-        //
+    
+    applyMaterial(material: THREE.ShaderMaterial) {
+        this.updateMeshHeight(material, this.savedMinHeight, this.savedMaxHeight)
+    }
+
+    public updateMeshHeight(material: THREE.ShaderMaterial, minHeight: number, maxHeight: number) {
+
+        this.savedMinHeight = minHeight
+        this.savedMaxHeight = maxHeight
+
+        material.uniforms.minHeight.value = minHeight
+        material.uniforms.maxHeight.value = maxHeight
     }
 }
