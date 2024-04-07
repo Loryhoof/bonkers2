@@ -257,13 +257,13 @@ class TerrainChunk {
             }
         }   
 
-        let groundBodyDesc = window.RAPIER.RigidBodyDesc.fixed();
+        let groundBodyDesc = (window as any).RAPIER.RigidBodyDesc.fixed();
         let groundBody = PhysicsManager.getInstance().physicsWorld.createRigidBody(groundBodyDesc);
-        let groundCollider = window.RAPIER.ColliderDesc.heightfield(
+        let groundCollider = (window as any).RAPIER.ColliderDesc.heightfield(
             nsubdivs -1 , nsubdivs -1, new Float32Array(heights), scale
         );
         PhysicsManager.getInstance().physicsWorld.createCollider(groundCollider, groundBody);
-        groundBody.setTranslation(new window.RAPIER.Vector3(this.meshObject.position.x, 0, this.meshObject.position.z), true)
+        groundBody.setTranslation(new (window as any).RAPIER.Vector3(this.meshObject.position.x, 0, this.meshObject.position.z), true)
         //groundBody.setRotation({w: 1, x: this.meshObject.rotation.x, y: this.meshObject.rotation.y, z: this.meshObject.rotation.z}, true)
     }
 

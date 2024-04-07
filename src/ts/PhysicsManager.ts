@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 // import RAPIER, { Collider, KinematicCharacterController, QueryFilterFlags, RigidBody } from '@dimforge/rapier3d';
 
-//.log(window.RAPIER, "window rapierrrwee")
+//.log((window as any).RAPIER, "(window as any) rapierrrwee")
 
-let ray = new window.RAPIER.Ray(new window.RAPIER.Vector3(0,0,0), new window.RAPIER.Vector3(0,0,0))
+let ray = new (window as any).RAPIER.Ray(new (window as any).RAPIER.Vector3(0,0,0), new (window as any).RAPIER.Vector3(0,0,0))
 
-let DOWN = new window.RAPIER.Vector3(0, -1, 0)
+let DOWN = new (window as any).RAPIER.Vector3(0, -1, 0)
 
 interface PhysicsObject {
     rigidBody: any;
@@ -18,8 +18,8 @@ export default class PhysicsManager {
     private static instance: PhysicsManager
 
     constructor() {
-        this.gravity = new window.RAPIER.Vector3(0.0, -9.81, 0.0); // - 9.81
-        this.physicsWorld = new window.RAPIER.World(this.gravity);
+        this.gravity = new (window as any).RAPIER.Vector3(0.0, -9.81, 0.0); // - 9.81
+        this.physicsWorld = new (window as any).RAPIER.World(this.gravity);
     }
 
     public static getInstance(): PhysicsManager {
@@ -34,33 +34,33 @@ export default class PhysicsManager {
     }
 
     createDynamicBox(position: THREE.Vector3, scale: THREE.Vector3): PhysicsObject {
-        const rbDesc = window.RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z)
+        const rbDesc = (window as any).RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z)
         const rigidBody = this.physicsWorld.createRigidBody(rbDesc);
 
-        const colDesc = window.RAPIER.ColliderDesc.cuboid(scale.x, scale.y, scale.z);
+        const colDesc = (window as any).RAPIER.ColliderDesc.cuboid(scale.x, scale.y, scale.z);
         const collider = this.physicsWorld.createCollider(colDesc, rigidBody);
 
         return { rigidBody, collider };
     }
 
     createFixedBox(position: THREE.Vector3, scale: THREE.Vector3, rotation: THREE.Quaternion = new THREE.Quaternion()): PhysicsObject {
-        const rbDesc = window.RAPIER.RigidBodyDesc.fixed().setTranslation(position.x, position.y, position.z).setRotation({w: rotation.w, x: rotation.x, y: rotation.y, z: rotation.z})
+        const rbDesc = (window as any).RAPIER.RigidBodyDesc.fixed().setTranslation(position.x, position.y, position.z).setRotation({w: rotation.w, x: rotation.x, y: rotation.y, z: rotation.z})
         const rigidBody = this.physicsWorld.createRigidBody(rbDesc);
 
-        const colDesc = window.RAPIER.ColliderDesc.cuboid(scale.x, scale.y, scale.z);
+        const colDesc = (window as any).RAPIER.ColliderDesc.cuboid(scale.x, scale.y, scale.z);
         const collider = this.physicsWorld.createCollider(colDesc, rigidBody);
 
         return { rigidBody, collider };
     }
 
     createPlayerCapsule(): PhysicsObject {
-        let rbDesc = window.RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 40, 0).lockRotations() //kinematicVelocityBased
+        let rbDesc = (window as any).RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 40, 0).lockRotations() //kinematicVelocityBased
         let rigidBody = this.physicsWorld.createRigidBody(rbDesc)
 
         let halfHeight = 1.1 // weird s
         let radius = 0.275
 
-        let capsuleColDesc = window.RAPIER.ColliderDesc.capsule(halfHeight, radius)
+        let capsuleColDesc = (window as any).RAPIER.ColliderDesc.capsule(halfHeight, radius)
         let collider = this.physicsWorld.createCollider(capsuleColDesc, rigidBody)
 
         return {rigidBody, collider}
