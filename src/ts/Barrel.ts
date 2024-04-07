@@ -12,6 +12,6 @@ export default class Barrel extends THREE.Object3D {
     
     async init() {
         this.model = await loadGLB('models/barrel.glb') as any
-        this.add(this.model.scene)
+        //this.add(this.model.scene)
     }
 }

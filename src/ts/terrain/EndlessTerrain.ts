@@ -9,7 +9,7 @@ import PhysicsManager from '../PhysicsManager'
 import LODInfo from './data/LODInfo'
 import { terrainMaterial } from './TerrainMaterial'
 
-//const treePrefab = await loadGLB('models/tree.glb')
+const treePrefab = await loadGLB('models/tree.glb')
 
 export default class EndlessTerrain {
     
@@ -199,8 +199,32 @@ class TerrainChunk {
         this.meshObject.geometry.update
 
         this.updateTerrainChunk()
+        //this.makeObjects(this.meshObject.geometry.attributes.position.array, meshData, this.meshObject.position)
         this.makeCollider(this.meshObject.geometry.attributes.position.array, meshData, this.meshObject.position)
     }
+
+    // makeObjects(vertices: any, meshData: MeshData, pos: any) {
+        
+
+    //     for (let i = 0; i < vertices.length; i += 3) {
+
+    //         let x = vertices[i]
+    //         let y = vertices[i+1]
+    //         let z = vertices[i+2]
+
+    //         let obj = treePrefab.scene.clone()
+
+    //         console.log(obj)
+
+    //         obj.position.set(x,y,z).add(pos)
+
+    //         //this.terrain.scene.add(obj)
+
+
+            
+    //     }
+
+    // }
 
     makeCollider(vertices: any, meshData: MeshData, pos: any) {
 
