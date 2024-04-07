@@ -9,8 +9,7 @@ const loadDependencies = async () => {
 const initializeApp = async ({ RAPIER, THREE }: any) => {
 
     (window as any).RAPIER = RAPIER;
-
-    const World = await import('./World');
+    
 
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -28,14 +27,19 @@ const initializeApp = async ({ RAPIER, THREE }: any) => {
 
     let finishedLoading = false;
 
-    const world = new World.default(camera, scene);
-    world.initialize();
+    let world = null as any
+
+    setTimeout( async () => {
+        const World = await import('./World');
+        const world = new World.default(camera, scene);
+        world.initialize();
+    }, 5000)
 
     function animate() {
         const deltaTime = clock.getDelta();
         const elapsedTime = clock.getElapsedTime();
 
-        world.update(elapsedTime, deltaTime);
+        world?.update(elapsedTime, deltaTime);
 
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
