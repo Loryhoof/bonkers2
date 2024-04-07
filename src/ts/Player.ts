@@ -13,6 +13,7 @@ import Blueprint from './Blueprint'
 import { FBXLoader } from 'three/examples/jsm/Addons.js'
 import Recoil from './Recoil'
 import CustomCameraControls from './CustomCameraControls'
+import Wood from './Wood'
 
 const ui = UIManager.getInstance()
 
@@ -106,6 +107,10 @@ export default class Player extends THREE.Object3D {
         const blueprint = new Blueprint(this.camera, this.scene)
         this.inventory.add(blueprint)
         this.hotBar[3] = blueprint
+
+        const wood = new Wood(1)
+        this.inventory.add(wood)
+        this.hotBar[4] = wood
 
         ui.initHotBar(this.hotBar)
 
