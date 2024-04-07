@@ -1,5 +1,5 @@
 const loadDependencies = async () => {
-    const RAPIER = await import('https://cdn.skypack.dev/@dimforge/rapier3d-compat');
+    const RAPIER = await import('https://cdn.skypack.dev/@dimforge/rapier3d-compat' as any);
     const THREE = await import('three');
     // const World = await import('./World');
 
