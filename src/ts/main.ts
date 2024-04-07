@@ -1,3 +1,4 @@
+import RAPIER from '@dimforge/rapier3d'
 import * as THREE from 'three'
 import World from './World'
 
@@ -15,6 +16,8 @@ const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000)
 const scene = new THREE.Scene()
 const clock = new THREE.Clock();
 
+let finishedLoading = false
+
 const world = new World(camera, scene)
 world.initialize()
 
@@ -22,7 +25,9 @@ function animate() {
     const deltaTime = clock.getDelta();
     const elapsedTime = clock.getElapsedTime()
 
-    world.update(elapsedTime, deltaTime)
+    if(finishedLoading) {
+        world.update(elapsedTime, deltaTime)
+    }
 
     requestAnimationFrame(animate)
     renderer.render(scene, camera)
@@ -38,6 +43,10 @@ function onWindowResize() {
 
     renderer.setSize( window.innerWidth, window.innerHeight );
 }
+
+window.addEventListener('load', function() {
+    finishedLoading = true
+})
 
 let isPointerLocked = false;
 
