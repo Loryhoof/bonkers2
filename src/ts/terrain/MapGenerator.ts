@@ -40,7 +40,7 @@ export default class MapGenerator {
         this.noiseData = new NoiseData(100, 5, 0.3, 2, 0, new THREE.Vector2(0,0)) // noiseScale, octaves, persistance, lacunarity, seed, offsetVec2
         this.textureData = new TextureData()
 
-        this.worker = new Worker('./worker.js', import.meta.url as any), { type: "module" });
+        this.worker = new Worker(new URL('./worker.js', import.meta.url as any), { type: "module" })
 
         this.worker.onmessage = this.handleWorkerMessage.bind(this);
 
