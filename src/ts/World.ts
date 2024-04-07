@@ -89,9 +89,9 @@ export default class World {
         const ground = new THREE.Mesh(planeGeo, groundMaterial)
         ground.rotation.x -= Math.PI/2;
         ground.position.y = 0.5
-        ground.visible = false
+        ground.visible = true
 
-        //this.physics.createFixedBox(ground.position, new THREE.Vector3(1000, ground.position.y - 0.5, 1000))
+        this.physics.createFixedBox(ground.position, new THREE.Vector3(1000, ground.position.y - 0.5, 1000))
         this.scene.add(ground)
 
         this.camera.add(listener)
