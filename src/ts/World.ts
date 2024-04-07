@@ -91,7 +91,7 @@ export default class World {
         ground.position.y = 0.5
         ground.visible = false
 
-        this.physics.createFixedBox(ground.position, new THREE.Vector3(1000, ground.position.y - 0.5, 1000))
+        //this.physics.createFixedBox(ground.position, new THREE.Vector3(1000, ground.position.y - 0.5, 1000))
         this.scene.add(ground)
 
         this.camera.add(listener)
@@ -101,6 +101,8 @@ export default class World {
         this.scene.add(player)
 
         this.endlessTerrain = new EndlessTerrain(this.scene, player)
+
+        //let terrain = new Terrain(this.scene)
 
         
 

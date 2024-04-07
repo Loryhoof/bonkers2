@@ -16,7 +16,7 @@ export default class PhysicsManager {
     private static instance: PhysicsManager
 
     constructor() {
-        this.gravity = new RAPIER.Vector3(0.0, 0, 0.0); // - 9.81
+        this.gravity = new RAPIER.Vector3(0.0, -9.81, 0.0); // - 9.81
         this.physicsWorld = new RAPIER.World(this.gravity);
     }
 

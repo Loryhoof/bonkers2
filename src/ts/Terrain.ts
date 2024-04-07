@@ -8,6 +8,7 @@ import { math } from './math';
 import Tree from './Tree';
 import EntityManager from './EntityManager';
 import Barrel from './Barrel';
+import { verify } from 'crypto';
 
 
 const treePrefab = await loadGLB('models/tree.glb') as any
@@ -72,14 +73,14 @@ export default class Terrain {
         
         //plane
 
-        let nsubdivs = 50
-        let size = 500
+        let nsubdivs =  50
+        let size = 250
         const scale = new THREE.Vector3(size, 5, size)
         const heights = []
 
         let geom = new THREE.PlaneGeometry(scale.x, scale.z, nsubdivs, nsubdivs)
         let mat = new THREE.MeshStandardMaterial({wireframe: true, color: 0xff00ff})
-        mat = groundMaterial as any
+        //mat = groundMaterial as any
 
         let mesh = new THREE.Mesh(geom, mat)
         mesh.rotation.x = -Math.PI / 2
@@ -109,6 +110,9 @@ export default class Terrain {
             // translate into colum / row indices
             let xIndex = Math.floor(Math.abs((vertices as any)[i] + (scale.x / 2)) / dx);
             let zIndex = Math.floor(Math.abs((vertices as any)[i + 1] - (scale.z / 2)) / dy);
+
+            //zIndex = vertices[i]
+            //xIndex = vertices[i+1]
 
             let x = vertices[i]
             let y = vertices[i+1]
@@ -250,6 +254,10 @@ export default class Terrain {
 
         
         //add to scene
+
+        //console.log(heights[0][1])
+
+        console.log(heights, nsubdivs, scale)
 
         let groundBodyDesc = RAPIER.RigidBodyDesc.fixed();
         let groundBody = PhysicsManager.getInstance().physicsWorld.createRigidBody(groundBodyDesc);
