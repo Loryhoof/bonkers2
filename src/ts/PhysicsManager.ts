@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import RAPIER, { Collider, KinematicCharacterController, QueryFilterFlags, RigidBody } from '@dimforge/rapier3d';
 
+//.log(window.RAPIER, "window rapierrrwee")
+
 let ray = new RAPIER.Ray(new RAPIER.Vector3(0,0,0), new RAPIER.Vector3(0,0,0))
 
 let DOWN = new RAPIER.Vector3(0, -1, 0)

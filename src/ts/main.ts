@@ -1,11 +1,16 @@
-// Define an async function to wrap your main code
-const startApp = async () => {
-    // Import RAPIER and other dependencies
+const loadDependencies = async () => {
     const RAPIER = await import('@dimforge/rapier3d');
     const THREE = await import('three');
-    const World = await import('./World');
+    // const World = await import('./World');
+
+    return { RAPIER, THREE };
+};
+
+const initializeApp = async ({ RAPIER, THREE }: any) => {
 
     (window as any).RAPIER = RAPIER;
+
+    const World = await import('./World');
 
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -30,9 +35,7 @@ const startApp = async () => {
         const deltaTime = clock.getDelta();
         const elapsedTime = clock.getElapsedTime();
 
-        if(RAPIER) {
-            world.update(elapsedTime, deltaTime);
-        }
+        world.update(elapsedTime, deltaTime);
 
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
@@ -48,10 +51,6 @@ const startApp = async () => {
 
         renderer.setSize(window.innerWidth, window.innerHeight);
     }
-
-    // window.addEventListener('load', function () {
-    //     finishedLoading = true;
-    // });
 
     let isPointerLocked = false;
 
@@ -96,5 +95,9 @@ const startApp = async () => {
     });
 };
 
-// Call the startApp function to begin execution
+const startApp = async () => {
+    const dependencies = await loadDependencies();
+    initializeApp(dependencies);
+};
+
 startApp();
