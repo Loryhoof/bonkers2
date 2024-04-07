@@ -1,5 +1,5 @@
 const loadDependencies = async () => {
-    const RAPIER = await import('@dimforge/rapier3d');
+    const RAPIER = await import('https://cdn.skypack.dev/@dimforge/rapier3d-compat');
     const THREE = await import('three');
     // const World = await import('./World');
 
@@ -9,6 +9,7 @@ const loadDependencies = async () => {
 const initializeApp = async ({ RAPIER, THREE }: any) => {
 
     (window as any).RAPIER = RAPIER;
+    await RAPIER.init();
     
 
     const width = window.innerWidth;
@@ -27,13 +28,11 @@ const initializeApp = async ({ RAPIER, THREE }: any) => {
 
     let finishedLoading = false;
 
-    let world = null as any
+    //let world = null as any
 
-    setTimeout( async () => {
-        const World = await import('./World');
-        const world = new World.default(camera, scene);
-        world.initialize();
-    }, 5000)
+    const World = await import('./World');
+    const world = new World.default(camera, scene);
+    world.initialize();
 
     function animate() {
         const deltaTime = clock.getDelta();
