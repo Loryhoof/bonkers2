@@ -1,92 +1,96 @@
-import RAPIER from '@dimforge/rapier3d'
-import * as THREE from 'three'
-import World from './World'
+// Define an async function to wrap your main code
+const startApp = async () => {
+    // Import RAPIER and other dependencies
+    const RAPIER = await import('@dimforge/rapier3d');
+    const THREE = await import('three');
+    const World = await import('./World');
 
-const width = window.innerWidth
-const height = window.innerHeight
+    const width = window.innerWidth;
+    const height = window.innerHeight;
 
-const renderer = new THREE.WebGLRenderer({
-    canvas: document.getElementById('app') as HTMLCanvasElement
-})
+    const renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById('app') as HTMLCanvasElement
+    });
 
-renderer.setSize(width, height)
-document.body.appendChild (renderer.domElement)
+    renderer.setSize(width, height);
+    document.body.appendChild(renderer.domElement);
 
-const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000)
-const scene = new THREE.Scene()
-const clock = new THREE.Clock();
+    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000);
+    const scene = new THREE.Scene();
+    const clock = new THREE.Clock();
 
-let finishedLoading = false
+    let finishedLoading = false;
 
-const world = new World(camera, scene)
-world.initialize()
+    const world = new World.default(camera, scene);
+    world.initialize();
 
-function animate() {
-    const deltaTime = clock.getDelta();
-    const elapsedTime = clock.getElapsedTime()
+    function animate() {
+        const deltaTime = clock.getDelta();
+        const elapsedTime = clock.getElapsedTime();
 
-    if(finishedLoading) {
-        world.update(elapsedTime, deltaTime)
+        world.update(elapsedTime, deltaTime);
+
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
     }
 
-    requestAnimationFrame(animate)
-    renderer.render(scene, camera)
-}
+    animate();
 
-animate()
+    window.addEventListener('resize', onWindowResize, false);
 
-window.addEventListener( 'resize', onWindowResize, false );
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
 
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize( window.innerWidth, window.innerHeight );
-}
-
-window.addEventListener('load', function() {
-    finishedLoading = true
-})
-
-let isPointerLocked = false;
-
-// Request pointer lock
-const requestPointerLock = () => {
-    const element = document.body;
-    element.requestPointerLock = element.requestPointerLock
-    element.requestPointerLock();
-};
-
-// Exit pointer lock
-const exitPointerLock = () => {
-    document.exitPointerLock = document.exitPointerLock
-    document.exitPointerLock();
-};
-
-// Check if pointer is locked
-const isPointerLockEnabled = () => {
-    return document.pointerLockElement === document.body
-};
-
-document.addEventListener('pointerlockchange', () => {
-    isPointerLocked = isPointerLockEnabled();
-});
-
-
-// Event listener for pointer lock error
-document.addEventListener('pointerlockerror', () => {
-    console.error('Pointer lock failed.');
-});
-
-document.addEventListener('click', (e) => {
-    if (!isPointerLocked) {
-        requestPointerLock();
+        renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    if(e.button === 0) {
-        //doShoot()
-        // if(selectedItem) {
-        //     selectedItem.use()
-        // }
-    }
-});
+    // window.addEventListener('load', function () {
+    //     finishedLoading = true;
+    // });
+
+    let isPointerLocked = false;
+
+    // Request pointer lock
+    const requestPointerLock = () => {
+        const element = document.body;
+        element.requestPointerLock = element.requestPointerLock;
+        element.requestPointerLock();
+    };
+
+    // Exit pointer lock
+    const exitPointerLock = () => {
+        document.exitPointerLock = document.exitPointerLock;
+        document.exitPointerLock();
+    };
+
+    // Check if pointer is locked
+    const isPointerLockEnabled = () => {
+        return document.pointerLockElement === document.body;
+    };
+
+    document.addEventListener('pointerlockchange', () => {
+        isPointerLocked = isPointerLockEnabled();
+    });
+
+    // Event listener for pointer lock error
+    document.addEventListener('pointerlockerror', () => {
+        console.error('Pointer lock failed.');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!isPointerLocked) {
+            requestPointerLock();
+        }
+
+        if (e.button === 0) {
+            //doShoot()
+            // if(selectedItem) {
+            //     selectedItem.use()
+            // }
+        }
+    });
+};
+
+// Call the startApp function to begin execution
+startApp();
