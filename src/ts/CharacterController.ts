@@ -4,7 +4,7 @@ import PhysicsObject from '../interfaces/PhysicsObject'
 import { FLOOR_DISTANCE, INTERACT_DISTANCE, groundLevel, movementSpeed, sprintFactor } from './constants'
 import Player from './Player'
 import PhysicsManager from './PhysicsManager'
-import RAPIER from '@dimforge/rapier3d'
+// import RAPIER from '@dimforge/rapier3d'
 import ItemType from '../enums/ItemType'
 import Firearm from '../interfaces/Firearm'
 import UIManager from './UIManager'
@@ -38,7 +38,7 @@ export default class CharacterController {
     private camera: THREE.Camera
 
     private physicsObject: PhysicsObject | null
-    private physicsController: RAPIER.KinematicCharacterController | null
+    private physicsController:  null
 
     private player: Player
     private scene: THREE.Scene

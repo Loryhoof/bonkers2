@@ -4,7 +4,7 @@ import Floor from "./Floor";
 import Wall from './Wall';
 import Connector from './Connector';
 import PhysicsManager from './PhysicsManager';
-import RAPIER from '@dimforge/rapier3d';
+// import RAPIER from '@dimforge/rapier3d';
 import ConnectorPosition from '../enums/ConnectorPosition';
 import { BUILDING_LAYER } from './constants';
 import { getWorldPos } from './Utils';
@@ -15,9 +15,9 @@ import Window from './Window';
 
 const raycaster = new THREE.Raycaster()
 
-const shape = new RAPIER.Cuboid(1.0, 2.0, 3.0);
-const shapePos = new RAPIER.Vector3(0, 0, 0)
-const shapeRot = { w: 1.0, x: 0.0, y: 0.0, z: 0.0 };
+// const shape = new RAPIER.Cuboid(1.0, 2.0, 3.0);
+// const shapePos = new RAPIER.Vector3(0, 0, 0)
+// const shapeRot = { w: 1.0, x: 0.0, y: 0.0, z: 0.0 };
 
 const previewMaterialValid = new THREE.MeshBasicMaterial({color: 0x00ff00, transparent: true, opacity: 0.5})
 const previewMaterialInvalid = new THREE.MeshBasicMaterial({color: 0xff0000, transparent: true, opacity: 0.5})

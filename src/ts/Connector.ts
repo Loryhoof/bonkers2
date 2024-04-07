@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import RAPIER from '@dimforge/rapier3d';
+// import RAPIER from '@dimforge/rapier3d';
 import PhysicsManager from './PhysicsManager';
 import ConnectorPosition from '../enums/ConnectorPosition';
 import SelectedBuildType from '../enums/SelectedBuildType';
@@ -8,9 +8,9 @@ import { getWorldPos } from './Utils';
 
 export default class Connector extends THREE.Object3D {
 
-    public shape = new RAPIER.Cuboid(1.0, 2.0, 3.0);
-    public shapePos = new RAPIER.Vector3(0, 0, 0)
-    public shapeRot = { w: 1.0, x: 0.0, y: 0.0, z: 0.0 };
+    // public shape = new RAPIER.Cuboid(1.0, 2.0, 3.0);
+    // public shapePos = new RAPIER.Vector3(0, 0, 0)
+    // public shapeRot = { w: 1.0, x: 0.0, y: 0.0, z: 0.0 };
     
     public connectorPosition: ConnectorPosition
     public connectorParentType: SelectedBuildType

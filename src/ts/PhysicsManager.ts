@@ -1,25 +1,25 @@
 import * as THREE from 'three';
-import RAPIER, { Collider, KinematicCharacterController, QueryFilterFlags, RigidBody } from '@dimforge/rapier3d';
+// import RAPIER, { Collider, KinematicCharacterController, QueryFilterFlags, RigidBody } from '@dimforge/rapier3d';
 
 //.log(window.RAPIER, "window rapierrrwee")
 
-let ray = new RAPIER.Ray(new RAPIER.Vector3(0,0,0), new RAPIER.Vector3(0,0,0))
+let ray = new window.RAPIER.Ray(new window.RAPIER.Vector3(0,0,0), new window.RAPIER.Vector3(0,0,0))
 
-let DOWN = new RAPIER.Vector3(0, -1, 0)
+let DOWN = new window.RAPIER.Vector3(0, -1, 0)
 
 interface PhysicsObject {
-    rigidBody: RAPIER.RigidBody;
-    collider: RAPIER.Collider;
+    rigidBody: any;
+    collider: any;
 }
 
 export default class PhysicsManager {
-    public readonly gravity: RAPIER.Vector;
-    public readonly physicsWorld: RAPIER.World;
+    public readonly gravity: any;
+    public readonly physicsWorld: any;
     private static instance: PhysicsManager
 
     constructor() {
-        this.gravity = new RAPIER.Vector3(0.0, -9.81, 0.0); // - 9.81
-        this.physicsWorld = new RAPIER.World(this.gravity);
+        this.gravity = new window.RAPIER.Vector3(0.0, -9.81, 0.0); // - 9.81
+        this.physicsWorld = new window.RAPIER.World(this.gravity);
     }
 
     public static getInstance(): PhysicsManager {
@@ -34,33 +34,33 @@ export default class PhysicsManager {
     }
 
     createDynamicBox(position: THREE.Vector3, scale: THREE.Vector3): PhysicsObject {
-        const rbDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z)
+        const rbDesc = window.RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z)
         const rigidBody = this.physicsWorld.createRigidBody(rbDesc);
 
-        const colDesc = RAPIER.ColliderDesc.cuboid(scale.x, scale.y, scale.z);
+        const colDesc = window.RAPIER.ColliderDesc.cuboid(scale.x, scale.y, scale.z);
         const collider = this.physicsWorld.createCollider(colDesc, rigidBody);
 
         return { rigidBody, collider };
     }
 
     createFixedBox(position: THREE.Vector3, scale: THREE.Vector3, rotation: THREE.Quaternion = new THREE.Quaternion()): PhysicsObject {
-        const rbDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(position.x, position.y, position.z).setRotation({w: rotation.w, x: rotation.x, y: rotation.y, z: rotation.z})
+        const rbDesc = window.RAPIER.RigidBodyDesc.fixed().setTranslation(position.x, position.y, position.z).setRotation({w: rotation.w, x: rotation.x, y: rotation.y, z: rotation.z})
         const rigidBody = this.physicsWorld.createRigidBody(rbDesc);
 
-        const colDesc = RAPIER.ColliderDesc.cuboid(scale.x, scale.y, scale.z);
+        const colDesc = window.RAPIER.ColliderDesc.cuboid(scale.x, scale.y, scale.z);
         const collider = this.physicsWorld.createCollider(colDesc, rigidBody);
 
         return { rigidBody, collider };
     }
 
     createPlayerCapsule(): PhysicsObject {
-        let rbDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 40, 0).lockRotations() //kinematicVelocityBased
+        let rbDesc = window.RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 40, 0).lockRotations() //kinematicVelocityBased
         let rigidBody = this.physicsWorld.createRigidBody(rbDesc)
 
         let halfHeight = 1.1 // weird s
         let radius = 0.275
 
-        let capsuleColDesc = RAPIER.ColliderDesc.capsule(halfHeight, radius)
+        let capsuleColDesc = window.RAPIER.ColliderDesc.capsule(halfHeight, radius)
         let collider = this.physicsWorld.createCollider(capsuleColDesc, rigidBody)
 
         return {rigidBody, collider}
@@ -71,15 +71,15 @@ export default class PhysicsManager {
         return controller
     }
 
-    setTranslation(physicsObject: PhysicsObject, vec: RAPIER.Vector3) {
+    setTranslation(physicsObject: PhysicsObject, vec: any) {
         physicsObject.rigidBody.setTranslation(vec, true)
     }
 
-    intersectShape(shapePos: RAPIER.Vector3, shapeRot: RAPIER.Rotation, shape: RAPIER.Shape, collisionGroup: number | undefined) {
+    intersectShape(shapePos: any, shapeRot: any, shape: any, collisionGroup: number | undefined) {
         return this.physicsWorld.intersectionWithShape(shapePos, shapeRot, shape, undefined, collisionGroup)     
     }
 
-    moveCharacter(controller: KinematicCharacterController, collider: Collider, rigidBody: RigidBody, translation: RAPIER.Vector3 | THREE.Vector3) {
+    moveCharacter(controller: any, collider: any, rigidBody: any, translation: any | THREE.Vector3) {
         controller.computeColliderMovement(
             collider,
             translation
@@ -90,7 +90,7 @@ export default class PhysicsManager {
         this.setLinearVelocity(rigidBody, correctedMovement)
     }
 
-    raycast(origin: THREE.Vector3, dir: THREE.Vector3, rb: RigidBody) {
+    raycast(origin: THREE.Vector3, dir: THREE.Vector3, rb: any) {
 
         ray.origin = origin
         ray.dir = dir
@@ -107,7 +107,7 @@ export default class PhysicsManager {
         return null
     }
 
-    setLinearVelocity(rigidBody: RigidBody, velocity: RAPIER.Vector3 | THREE.Vector3) {
+    setLinearVelocity(rigidBody: any, velocity: any | THREE.Vector3) {
         rigidBody.setLinvel(velocity, true)
     }
 

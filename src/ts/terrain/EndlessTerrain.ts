@@ -4,7 +4,7 @@ import { groundMaterial } from './Ground'
 import MapGenerator from './MapGenerator'
 import MapData from './data/MapData'
 import MeshData from './data/MeshData'
-import RAPIER from '@dimforge/rapier3d'
+// import RAPIER from '@dimforge/rapier3d'
 import PhysicsManager from '../PhysicsManager'
 import LODInfo from './data/LODInfo'
 import { terrainMaterial } from './TerrainMaterial'
@@ -257,13 +257,13 @@ class TerrainChunk {
             }
         }   
 
-        let groundBodyDesc = RAPIER.RigidBodyDesc.fixed();
+        let groundBodyDesc = window.RAPIER.RigidBodyDesc.fixed();
         let groundBody = PhysicsManager.getInstance().physicsWorld.createRigidBody(groundBodyDesc);
-        let groundCollider = RAPIER.ColliderDesc.heightfield(
+        let groundCollider = window.RAPIER.ColliderDesc.heightfield(
             nsubdivs -1 , nsubdivs -1, new Float32Array(heights), scale
         );
         PhysicsManager.getInstance().physicsWorld.createCollider(groundCollider, groundBody);
-        groundBody.setTranslation(new RAPIER.Vector3(this.meshObject.position.x, 0, this.meshObject.position.z), true)
+        groundBody.setTranslation(new window.RAPIER.Vector3(this.meshObject.position.x, 0, this.meshObject.position.z), true)
         //groundBody.setRotation({w: 1, x: this.meshObject.rotation.x, y: this.meshObject.rotation.y, z: this.meshObject.rotation.z}, true)
     }
 
