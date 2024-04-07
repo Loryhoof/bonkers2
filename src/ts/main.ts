@@ -5,6 +5,8 @@ const startApp = async () => {
     const THREE = await import('three');
     const World = await import('./World');
 
+    (window as any).RAPIER = RAPIER;
+
     const width = window.innerWidth;
     const height = window.innerHeight;
 
@@ -28,7 +30,9 @@ const startApp = async () => {
         const deltaTime = clock.getDelta();
         const elapsedTime = clock.getElapsedTime();
 
-        world.update(elapsedTime, deltaTime);
+        if(RAPIER) {
+            world.update(elapsedTime, deltaTime);
+        }
 
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
