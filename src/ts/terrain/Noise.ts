@@ -45,7 +45,7 @@ export default class Noise {
         
         let noiseMap: number[][] = new Array(mapWidth);
 
-        var noise = new Noise
+        //var noise = new Noise
         
         let prng = seedrandom(seed.toString());
 

@@ -54,7 +54,7 @@ export default class PhysicsManager {
     }
 
     createPlayerCapsule(): PhysicsObject {
-        let rbDesc = (window as any).RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 40, 0).lockRotations() //kinematicVelocityBased
+        let rbDesc = (window as any).RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 5, 5).lockRotations() //kinematicVelocityBased
         let rigidBody = this.physicsWorld.createRigidBody(rbDesc)
 
         let halfHeight = 1.1 // weird s
@@ -105,6 +105,19 @@ export default class PhysicsManager {
             return origin.distanceTo(hitPoint)
         }
         return null
+    }
+
+    raycastFull(origin: THREE.Vector3, dir: THREE.Vector3, rb: any) {
+
+        ray.origin = origin
+        ray.dir = dir
+
+        let maxToi = 4.0;
+        let solid = false;
+
+        let hit = this.physicsWorld.castRay(ray, maxToi, solid, undefined, undefined, undefined, rb);
+
+        return {ray, hit}
     }
 
     setLinearVelocity(rigidBody: any, velocity: any | THREE.Vector3) {

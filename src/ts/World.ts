@@ -19,6 +19,7 @@ import { listener } from './AudioManager'
 import { SpawnManager } from './SpawnManager'
 import EndlessTerrain from './terrain/EndlessTerrain'
 import MapGenerator from './terrain/MapGenerator'
+import Car from './vehicle/Car'
 
 const loader = new GLTFLoader()
 
@@ -99,6 +100,10 @@ export default class World {
         let player = new Player(this.scene, this.camera)
         this.entityManager.add(player)
         this.scene.add(player)
+
+        // car test
+
+        //let car = new Car(this.scene)
 
         this.endlessTerrain = new EndlessTerrain(this.scene, player)
 
