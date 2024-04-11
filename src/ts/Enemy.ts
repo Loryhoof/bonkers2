@@ -48,6 +48,8 @@ export default class Enemy extends THREE.Object3D {
     private sphere: THREE.Sphere
 
     private lastViewTime: number = 0
+
+    public isDead: boolean = false;
   
 
     constructor(scene: THREE.Scene) {
@@ -136,7 +138,7 @@ export default class Enemy extends THREE.Object3D {
             //this.attackAnim.clampWhenFinished = false
             //this.attackAnim.loop = THREE.LoopOnce
 
-            PhysicsManager.getInstance().setTranslation(this.physicsObject, new THREE.Vector3(randomBetween(-50, 50), 15, randomBetween(-50, 50)))
+            PhysicsManager.getInstance().setTranslation(this.physicsObject, new THREE.Vector3(randomBetween(-50, 50), 50, randomBetween(-50, 50)))
 
             this.footStepSound = new THREE.PositionalAudio( listener );
 
@@ -250,6 +252,8 @@ export default class Enemy extends THREE.Object3D {
             this.deathAnim.play()
 
             this.setTarget(null)
+
+            this.isDead = true
 
             setTimeout(() => {
                 EntityManager.getInstance().remove(this)

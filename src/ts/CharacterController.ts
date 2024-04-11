@@ -101,6 +101,10 @@ export default class CharacterController {
                         const tool = this.player.selectedItem as Tool;
                         tool.setHold(true);
                     }
+                    else if(this.player.selectedItem.item_type === ItemType.FIREARM) {
+                        const firearm = this.player.selectedItem as Firearm;
+                        firearm.setHold(true);
+                    }
                     else {
                         this.player.selectedItem.use()
                     }
@@ -130,6 +134,10 @@ export default class CharacterController {
                             const tool = this.player.selectedItem as Tool;
                             tool.setHold(false);
                         }
+                    }
+                    else if(this.player.selectedItem.item_type === ItemType.FIREARM) {
+                        const firearm = this.player.selectedItem as Firearm;
+                        firearm.setHold(false);
                     }
                 }
             } else if (event.button === 2) {

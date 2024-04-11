@@ -3,7 +3,7 @@ import PhysicsManager from './PhysicsManager'
 import { sky } from './Sky'
 import { groundMaterial } from './terrain/Ground'
 import Player from './Player'
-import Pistol from './Pistol'
+import Pistol from './weapons/Pistol'
 import UIManager from './UIManager'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { loadGLB, randomBetween } from './Utils'
@@ -35,15 +35,31 @@ export default class World {
 
     private endlessTerrain!: EndlessTerrain 
     private mapGenerator!: MapGenerator
+
+
+    // private static instance: World;
     
-    constructor(camera: THREE.PerspectiveCamera, scene: THREE.Scene) {
+    constructor(camera: THREE.PerspectiveCamera, scene: THREE.Scene, renderer: THREE.WebGLRenderer) {
         this.camera = camera
         this.scene = scene
         this.physics = PhysicsManager.getInstance()
         this.entityManager = EntityManager.getInstance()
         this.ui = UIManager.getInstance()
-        this.spawner = null
+        this.spawner = null;
+
+        (window as any).renderer = renderer
     }
+
+    // static getInstance(camera: THREE.PerspectiveCamera, scene: THREE.Scene, renderer: THREE.WebGLRenderer) {
+    //     if (!World.instance) {
+    //         World.instance = new World(camera, scene, renderer);
+    //     }
+    //     return World.instance;
+    // }
+
+    // getRenderer() {
+    //     return this.renderer
+    // }
 
     async initialize() {
 
@@ -130,7 +146,7 @@ export default class World {
         //this.generateTerrain(nsubdivs, scale);
         //this.generateTerrain(100, 100, 20)
 
-        //this.spawner = new SpawnManager(this.scene, player)
+        this.spawner = new SpawnManager(this.scene, player)
     }
 
     spawnTrees() {
@@ -142,7 +158,7 @@ export default class World {
     update(elapsedTime: number, deltaTime: number) {
 
         
-        //this.spawner.update(elapsedTime, deltaTime)
+        this.spawner.update(elapsedTime, deltaTime)
         this.endlessTerrain?.update(elapsedTime, deltaTime)
 
         this.entityManager.update(elapsedTime, deltaTime)

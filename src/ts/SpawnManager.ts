@@ -14,6 +14,8 @@ export class SpawnManager {
     
     private entities: Array<Enemy>
 
+    private maxSpawns: number = 15
+
     constructor(scene: THREE.Scene, player: Player) {
         this.scene = scene
         this.player = player
@@ -22,7 +24,7 @@ export class SpawnManager {
 
     spawnZombies() {
 
-        if(this.entities.length > 5) {
+        if(this.entities.length > this.maxSpawns) {
             return
         }
 
@@ -34,14 +36,19 @@ export class SpawnManager {
         this.entities.push(enemy)
 
         //console.log(this.scene, "This sscene")
+        console.log("spawining")
         enemy.setTarget(this.player)
 
     }
 
     update(elapsedTime: number, deltaTime: number) {
 
-        if(elapsedTime < 20) {
-            return
+        for (let i = 0; i < this.entities.length; i++) {
+            let entity = this.entities[i]
+
+            if (entity.isDead) {
+                this.entities.splice(i, 1)
+            }
         }
 
         if(elapsedTime - this.lastSpawnTime > this.spawnInterval) {

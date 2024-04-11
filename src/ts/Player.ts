@@ -4,16 +4,18 @@ import PhysicsObject from '../interfaces/PhysicsObject'
 import PhysicsManager from './PhysicsManager'
 import CharacterController from './CharacterController'
 import UIManager from './UIManager'
-import Pistol from './Pistol'
+import Pistol from './weapons/Pistol'
 import PlayerInventory from './PlayerInventory'
 import UsableItem from '../interfaces/UsableItem'
 import Bullet from './Bullet'
 import Hatchet from './Hatchet'
 import Blueprint from './Blueprint'
 import { FBXLoader } from 'three/examples/jsm/Addons.js'
-import Recoil from './Recoil'
+import Recoil from './weapons/Recoil'
 import CustomCameraControls from './CustomCameraControls'
 import Wood from './Wood'
+import Rifle from './weapons/Rifle'
+import Sniper from './weapons/Sniper'
 
 const ui = UIManager.getInstance()
 
@@ -92,7 +94,7 @@ export default class Player extends THREE.Object3D {
         this.model = new THREE.Mesh(geometry, material)
         this.model.position.set(0, 0, 0)
 
-        const pistol = new Pistol(15, this.camera, this.scene)
+        const pistol = new Sniper(15, this.camera, this.scene, this.recoilParent)
         this.inventory.add(pistol)
         this.hotBar[0] = pistol
 
@@ -111,6 +113,10 @@ export default class Player extends THREE.Object3D {
         const wood = new Wood(1)
         this.inventory.add(wood)
         this.hotBar[4] = wood
+
+        const rifle = new Rifle(15, this.camera, this.scene, this.recoilParent)
+        this.inventory.add(rifle)
+        this.hotBar[5] = rifle
 
         ui.initHotBar(this.hotBar)
 

@@ -9,6 +9,16 @@ const ambience_sound = new THREE.Audio(listener);
 const grass_step_sound = new THREE.Audio(listener);
 const tree_fall_sound = new THREE.Audio(listener);
 
+// Rifle
+
+const rifle_shoot_sound = new THREE.Audio(listener);
+const rifle_reload_sound = new THREE.Audio(listener);
+
+// Sniper
+
+const sniper_shot_sound = new THREE.Audio(listener);
+const sniper_bolt_action = new THREE.Audio(listener);
+
 // Axe - Hatchet
 const axe_hit_1_sound = new THREE.Audio(listener);
 const axe_hit_2_sound = new THREE.Audio(listener);
@@ -158,6 +168,30 @@ audioLoader.load( '/audio/hitmarker.mp3', function( buffer ) {
 	hit_sound.setVolume( 2 );
 });
 
+audioLoader.load( '/audio/ak_2.mp3', function( buffer ) {
+	rifle_shoot_sound.setBuffer( buffer );
+	rifle_shoot_sound.setLoop( false );
+	rifle_shoot_sound.setVolume( 2 );
+});
+
+audioLoader.load( '/audio/rifle_reload.mp3', function( buffer ) {
+	rifle_reload_sound.setBuffer( buffer );
+	rifle_reload_sound.setLoop( false );
+	rifle_reload_sound.setVolume( 2 );
+});
+
+audioLoader.load( '/audio/sniper_shot.mp3', function( buffer ) {
+	sniper_shot_sound.setBuffer( buffer );
+	sniper_shot_sound.setLoop( false );
+	sniper_shot_sound.setVolume( 1 );
+});
+
+audioLoader.load( '/audio/sniper_bolt.mp3', function( buffer ) {
+	sniper_bolt_action.setBuffer( buffer );
+	sniper_bolt_action.setLoop( false );
+	sniper_bolt_action.setVolume( 1 );
+});
+
 export {
     listener,
     pistol_shoot_sound,
@@ -172,5 +206,10 @@ export {
 	door_open_sound,
 	door_close_sound,
 	build_sound,
-	hit_sound
+	hit_sound,
+	rifle_shoot_sound,
+	rifle_reload_sound,
+
+	sniper_shot_sound,
+	sniper_bolt_action
 };
