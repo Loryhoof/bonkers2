@@ -38,7 +38,7 @@ export default class Rifle extends THREE.Object3D implements Firearm {
     public model_slide: THREE.Mesh | any
     public readonly image: string
 
-    private readonly camera: THREE.Camera
+    private readonly camera: THREE.Camera | any
     private readonly scene: THREE.Scene
 
     private isReloading: boolean
