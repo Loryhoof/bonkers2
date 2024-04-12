@@ -54,7 +54,7 @@ export default class PhysicsManager {
     }
 
     createPlayerCapsule(): PhysicsObject {
-        let rbDesc = (window as any).RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 5, 5).lockRotations() //kinematicVelocityBased
+        let rbDesc = (window as any).RAPIER.RigidBodyDesc.dynamic().setTranslation(5, 50, 50).lockRotations() //kinematicVelocityBased
         let rigidBody = this.physicsWorld.createRigidBody(rbDesc)
 
         let halfHeight = 1.1 // weird s

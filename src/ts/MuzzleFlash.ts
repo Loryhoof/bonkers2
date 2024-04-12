@@ -21,7 +21,7 @@ class MuzzleFlash {
         scene.add(this.mesh);
 
         // Duration of the muzzle flash in milliseconds
-        this.duration = 25; // Example duration, adjust as needed
+        this.duration = 15; // Example duration, adjust as needed
     }
 
     show(gunPosition: THREE.Vector3, gunRotation: THREE.Quaternion, distance: number) {

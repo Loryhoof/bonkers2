@@ -67,7 +67,7 @@ export default class Rifle extends THREE.Object3D implements Firearm {
         super()
         this.name = "Rifle"
         this.quantity = 1
-        this.damage = 20
+        this.damage = 25
         this.ammo = ammoCount
         this.maxAmmo = 30
         this.item_type = ItemType.FIREARM

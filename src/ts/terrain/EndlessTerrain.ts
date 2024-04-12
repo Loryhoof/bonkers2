@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { loadGLB } from '../Utils'
+import { loadGLB, randomBetween } from '../Utils'
 import { groundMaterial } from './Ground'
 import MapGenerator from './MapGenerator'
 import MapData from './data/MapData'
@@ -8,8 +8,9 @@ import MeshData from './data/MeshData'
 import PhysicsManager from '../PhysicsManager'
 import LODInfo from './data/LODInfo'
 import { terrainMaterial } from './TerrainMaterial'
-
-const treePrefab = await loadGLB('models/tree.glb')
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+const treePrefab = await loadGLB('models/tree_test.glb')
+const plantPrefab = await loadGLB('models/plant.glb')
 
 export default class EndlessTerrain {
     
@@ -199,32 +200,132 @@ class TerrainChunk {
         this.meshObject.geometry.update
 
         this.updateTerrainChunk()
-        //this.makeObjects(this.meshObject.geometry.attributes.position.array, meshData, this.meshObject.position)
+        this.makeObjects(this.meshObject.geometry.attributes.position.array, meshData, this.meshObject.position)
         this.makeCollider(this.meshObject.geometry.attributes.position.array, meshData, this.meshObject.position)
     }
 
-    // makeObjects(vertices: any, meshData: MeshData, pos: any) {
+    makeObjects(vertices: any, meshData: MeshData, pos: any) {
+
+        let obj = treePrefab.scene.clone()
+
+        let bark = treePrefab.scene.getObjectByName('tree_bark')
+        let leaves = treePrefab.scene.getObjectByName('tree_leaves')
+
+        //leaves.material.alphaTest = 0.7
+        leaves.material.depthWrite = true
+
+        let plant = plantPrefab.scene.clone().getObjectByName('plant')
+
+        console.log(plant)
+
+
+        //console.log(bark.geometry, bark.material)
+
+        var mergedGeometry = BufferGeometryUtils.mergeGeometries([bark.geometry, leaves.geometry]);
+
+        //console.log(mergedGeometry)
+
+
         
+        
+        //this.terrain.scene.add(instancedMesh)
 
-    //     for (let i = 0; i < vertices.length; i += 3) {
 
-    //         let x = vertices[i]
-    //         let y = vertices[i+1]
-    //         let z = vertices[i+2]
+        let positions = []
+        let positions2 = []
 
-    //         let obj = treePrefab.scene.clone()
+        // for (let i = 0; i < vertices.length; i += 3) {
+        //     nums.push(Math.random())
+        // }
 
-    //         console.log(obj)
+        //let instancedMesh = new THREE.InstancedMesh(bark.geometry, bark.material, nums.length)
 
-    //         obj.position.set(x,y,z).add(pos)
+        //console.log(nums)
 
-    //         //this.terrain.scene.add(obj)
+        for (let i = 0; i < vertices.length; i += 3) {
+
+            
+            let x = vertices[i]
+            let y = vertices[i+1]
+            let z = vertices[i+2]
+
+            
+
+            obj.position.set(x,y,z).add(pos)
+
+            if(Math.random() > 0.6 && y > 10) {
+                positions.push(new THREE.Vector3(x,y,z).add(pos))
+            }
+            else {
+                positions2.push(new THREE.Vector3(x,y,z).add(pos))
+            }
+
+            // if(i <= 500) {
+            //     let instanceMatrix = new THREE.Matrix4
+            //     var position = new THREE.Vector3(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
+            //     var rotation = new THREE.Euler(-Math.PI / 2, 0, 0);
+            //     var scale = new THREE.Vector3(0.25, 0.25, 0.25)
+
+            //     // Create a transformation matrix for the instance
+            //     instanceMatrix.compose(new THREE.Vector3(x,y,z).add(pos), new THREE.Quaternion().setFromEuler(rotation), scale);
+            //     instancedMesh.setMatrixAt(i, instanceMatrix)
+            // }
+
+            
+
+            // if(Math.random() > 0.99) {
+            //     this.terrain.scene.add(obj)
+            // }
 
 
             
-    //     }
+        }
 
-    // }
+        let instancedMesh = new THREE.InstancedMesh(bark.geometry, bark.material, positions.length)
+        let instancedMesh2 = new THREE.InstancedMesh(leaves.geometry, leaves.material, positions.length)
+
+        let plantInstancedMesh = new THREE.InstancedMesh(plant.geometry, plant.material, positions2.length)
+
+        for (let i = 0; i < positions.length; i++) {
+
+            let instanceMatrix = new THREE.Matrix4
+            var position = new THREE.Vector3(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
+            var rotation = new THREE.Euler(-Math.PI / 2, 0, 0);
+            let randScale = randomBetween(0.1, 0.25)
+            var scale = new THREE.Vector3(randScale, randScale, randScale)
+
+            //   //Create a transformation matrix for the instance
+            instanceMatrix.compose(positions[i].clone(), new THREE.Quaternion().setFromEuler(rotation), scale);
+            instancedMesh.setMatrixAt(i, instanceMatrix)
+            instancedMesh2.setMatrixAt(i, instanceMatrix)
+        }
+
+        for (let i = 0; i < positions2.length; i++) {
+
+            let instanceMatrix = new THREE.Matrix4
+           // var position = new THREE.Vector3(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
+            var rotation = new THREE.Euler(-Math.PI / 2, 0, 0);
+            let randScale = randomBetween(0.1, 0.25)
+            var scale = new THREE.Vector3(randScale, randScale, randScale)
+
+            //   //Create a transformation matrix for the instance
+            instanceMatrix.compose(positions2[i].clone(), new THREE.Quaternion().setFromEuler(rotation), scale);
+            plantInstancedMesh.setMatrixAt(i, instanceMatrix)
+
+            //console.log('yla')
+            //instancedMesh2.setMatrixAt(i, instanceMatrix)
+
+        }
+        
+
+        //console.log(positions)
+
+        instancedMesh.updateMatrixWorld()
+        instancedMesh2.updateMatrixWorld()
+        plantInstancedMesh.updateMatrixWorld()
+        this.terrain.scene.add(instancedMesh, instancedMesh2)
+
+    }
 
     makeCollider(vertices: any, meshData: MeshData, pos: any) {
 

@@ -146,7 +146,7 @@ export default class World {
         //this.generateTerrain(nsubdivs, scale);
         //this.generateTerrain(100, 100, 20)
 
-        this.spawner = new SpawnManager(this.scene, player)
+        //this.spawner = new SpawnManager(this.scene, player)
     }
 
     spawnTrees() {
@@ -158,7 +158,7 @@ export default class World {
     update(elapsedTime: number, deltaTime: number) {
 
         
-        this.spawner.update(elapsedTime, deltaTime)
+        //this.spawner.update(elapsedTime, deltaTime)
         this.endlessTerrain?.update(elapsedTime, deltaTime)
 
         this.entityManager.update(elapsedTime, deltaTime)
