@@ -22,7 +22,7 @@ https://bonkers-ts.vercel.app/
 - Multiplayer
 
 ## Screenshots from the game
-
+![sniper_scope](https://github.com/Loryhoof/bonkers2/assets/29487929/b875297f-7608-4b89-aec4-9baefebb4586)
 ![image](https://github.com/Loryhoof/bonkers2/assets/29487929/01a02ed2-930b-4b05-80e4-e0080741fa07)
 ![bga2](https://github.com/Loryhoof/bonkers2/assets/29487929/7425808b-1865-45d8-9586-10dd5b880cd5)
 ![bga](https://github.com/Loryhoof/bonkers2/assets/29487929/7ec22973-0f8b-48ef-9425-fd434f66fabd)
