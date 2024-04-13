@@ -122,6 +122,8 @@ class TerrainChunk {
     public minHeight: number = 0
     public maxHeight: number = 0
 
+    private entities: Array<any> = []
+
     constructor(terrain: EndlessTerrain, coord: THREE.Vector2, size: number, detailLevels: LODInfo[]) {
         this.terrain = terrain
 
@@ -324,7 +326,8 @@ class TerrainChunk {
         instancedMesh2.updateMatrixWorld()
         plantInstancedMesh.updateMatrixWorld()
         this.terrain.scene.add(instancedMesh, instancedMesh2)
-
+        this.entities.push(instancedMesh, instancedMesh2)
+        //console.log(this.entities, "entities")
     }
 
     makeCollider(vertices: any, meshData: MeshData, pos: any) {
@@ -411,6 +414,10 @@ class TerrainChunk {
     }
 
     setVisible(visible: boolean) {
+
+        this.entities.forEach((entity) => {
+            entity.visible = visible
+        })
         this.meshObject.visible = visible
     }
 
