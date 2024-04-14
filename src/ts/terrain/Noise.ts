@@ -91,8 +91,7 @@ export default class Noise {
                     let sampleY = (y - halfHeight + octaveOffsets[i].y) / scale * frequency;
                     
                     let perlinValue = perlin.perlin2(sampleX, sampleY)
-                    noiseHeight += perlinValue * amplitude;
-                    
+                    noiseHeight += perlinValue * amplitude; 
         
                     amplitude *= persistance;
                     frequency *= lacunarity;

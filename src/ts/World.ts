@@ -123,6 +123,11 @@ export default class World {
 
         this.endlessTerrain = new EndlessTerrain(this.scene, player)
 
+        let ocean = new THREE.Mesh(new THREE.PlaneGeometry(1000,1000), new THREE.MeshStandardMaterial({color: 0x0000ff, transparent: true, opacity: 0.6}))
+        ocean.rotation.x = -Math.PI / 2
+        ocean.position.y = 9
+        //this.scene.add(ocean)
+
         //let terrain = new Terrain(this.scene)
 
         
