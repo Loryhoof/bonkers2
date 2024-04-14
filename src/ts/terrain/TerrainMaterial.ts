@@ -3,7 +3,7 @@ import * as THREE from 'three';
 
 const textureLoader = new THREE.TextureLoader();
 
-const groundTexture1 = textureLoader.load('grass.jpg');
+const groundTexture1 = textureLoader.load('grass2.jpg');
 groundTexture1.wrapS = THREE.RepeatWrapping; // Repeat the texture in S direction
 groundTexture1.wrapT = THREE.RepeatWrapping; // Repeat the texture in T direction
 

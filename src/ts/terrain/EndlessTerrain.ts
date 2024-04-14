@@ -10,6 +10,7 @@ import LODInfo from './data/LODInfo'
 import { terrainMaterial } from './TerrainMaterial'
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 const treePrefab = await loadGLB('models/tree_test.glb')
+const treeDarkPrefab = await loadGLB('models/tree2.glb')
 const plantPrefab = await loadGLB('models/plant.glb')
 
 export default class EndlessTerrain {
@@ -212,13 +213,14 @@ class TerrainChunk {
 
         let bark = treePrefab.scene.getObjectByName('tree_bark')
         let leaves = treePrefab.scene.getObjectByName('tree_leaves')
+        let tree2 = treeDarkPrefab.scene.getObjectByName('bark')
 
         //leaves.material.alphaTest = 0.7
         leaves.material.depthWrite = true
 
         let plant = plantPrefab.scene.clone().getObjectByName('plant')
 
-        console.log(plant)
+        //console.log(plant)
 
 
         //console.log(bark.geometry, bark.material)
@@ -283,50 +285,53 @@ class TerrainChunk {
             
         }
 
-        let instancedMesh = new THREE.InstancedMesh(bark.geometry, bark.material, positions.length)
-        let instancedMesh2 = new THREE.InstancedMesh(leaves.geometry, leaves.material, positions.length)
+        let instancedMesh = new THREE.InstancedMesh(tree2.geometry, tree2.material, positions.length)
+        //let instancedMesh2 = new THREE.InstancedMesh(leaves.geometry, leaves.material, positions.length)
 
-        let plantInstancedMesh = new THREE.InstancedMesh(plant.geometry, plant.material, positions2.length)
+        //let instancedMesh3 = new THREE.InstancedMesh(tree2.geometry, tree2.material, positions.length)
+
+        //let plantInstancedMesh = new THREE.InstancedMesh(plant.geometry, plant.material, positions2.length)
 
         for (let i = 0; i < positions.length; i++) {
 
             let instanceMatrix = new THREE.Matrix4
             var position = new THREE.Vector3(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
-            var rotation = new THREE.Euler(-Math.PI / 2, 0, 0);
-            let randScale = randomBetween(0.1, 0.25)
+            var rotation = new THREE.Euler(0, 0, 0);
+            let randScale = randomBetween(2,3)
             var scale = new THREE.Vector3(randScale, randScale, randScale)
 
             //   //Create a transformation matrix for the instance
             instanceMatrix.compose(positions[i].clone(), new THREE.Quaternion().setFromEuler(rotation), scale);
             instancedMesh.setMatrixAt(i, instanceMatrix)
-            instancedMesh2.setMatrixAt(i, instanceMatrix)
+           // instancedMesh2.setMatrixAt(i, instanceMatrix)
         }
 
-        for (let i = 0; i < positions2.length; i++) {
+        // for (let i = 0; i < positions2.length; i++) {
 
-            let instanceMatrix = new THREE.Matrix4
-           // var position = new THREE.Vector3(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
-            var rotation = new THREE.Euler(-Math.PI / 2, 0, 0);
-            let randScale = randomBetween(0.1, 0.25)
-            var scale = new THREE.Vector3(randScale, randScale, randScale)
+        //     let instanceMatrix = new THREE.Matrix4
+        //    // var position = new THREE.Vector3(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
+        //     var rotation = new THREE.Euler(0, 0, 0);
+        //     let randScale = randomBetween(2, 3)
+        //     var scale = new THREE.Vector3(randScale, randScale, randScale)
 
-            //   //Create a transformation matrix for the instance
-            instanceMatrix.compose(positions2[i].clone(), new THREE.Quaternion().setFromEuler(rotation), scale);
-            plantInstancedMesh.setMatrixAt(i, instanceMatrix)
+        //     //   //Create a transformation matrix for the instance
+        //     instanceMatrix.compose(positions2[i].clone(), new THREE.Quaternion().setFromEuler(rotation), scale);
+        //     instancedMesh3.setMatrixAt(i, instanceMatrix)
 
-            //console.log('yla')
-            //instancedMesh2.setMatrixAt(i, instanceMatrix)
+        //     //console.log('yla')
+        //     //instancedMesh2.setMatrixAt(i, instanceMatrix)
 
-        }
+        // }
         
 
         //console.log(positions)
 
         instancedMesh.updateMatrixWorld()
-        instancedMesh2.updateMatrixWorld()
-        plantInstancedMesh.updateMatrixWorld()
-        this.terrain.scene.add(instancedMesh, instancedMesh2)
-        this.entities.push(instancedMesh, instancedMesh2)
+        //instancedMesh2.updateMatrixWorld()
+        //instancedMesh3.updateMatrixWorld()
+        //plantInstancedMesh.updateMatrixWorld()
+        this.terrain.scene.add(instancedMesh)
+        this.entities.push(instancedMesh)
         //console.log(this.entities, "entities")
     }
 

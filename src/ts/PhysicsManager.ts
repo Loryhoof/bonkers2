@@ -54,7 +54,7 @@ export default class PhysicsManager {
     }
 
     createPlayerCapsule(): PhysicsObject {
-        let rbDesc = (window as any).RAPIER.RigidBodyDesc.dynamic().setTranslation(5, 50, 50).lockRotations() //kinematicVelocityBased
+        let rbDesc = (window as any).RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 50, 0).lockRotations() //kinematicVelocityBased
         let rigidBody = this.physicsWorld.createRigidBody(rbDesc)
 
         let halfHeight = 1.1 // weird s
@@ -107,7 +107,7 @@ export default class PhysicsManager {
         return null
     }
 
-    raycastFull(origin: THREE.Vector3, dir: THREE.Vector3, rb: any) {
+    raycastFull(origin: THREE.Vector3, dir: THREE.Vector3, rb: any = undefined) {
 
         ray.origin = origin
         ray.dir = dir
