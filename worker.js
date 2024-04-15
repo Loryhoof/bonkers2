@@ -12,7 +12,7 @@ function generateMapData(mapChunkSize, noiseData, terrainData, center, useFallof
     //console.log(newOffset)
     const {noiseMap, minMaxHeight} = new Noise().generateNoiseMap(mapChunkSize, mapChunkSize, noiseData.seed, noiseData.noiseScale, noiseData.octaves, noiseData.persistance, noiseData.lacunarity, newOffset);
 
-    //console.log(noiseMap)
+    //console.log(noiseMap) //
     if(useFalloff) {
         for (let y = 0; y < mapChunkSize; y++) {
             for (let x = 0; x < mapChunkSize; x++) {
