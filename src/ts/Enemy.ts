@@ -9,6 +9,7 @@ import Wall from './Wall'
 import Floor from './Floor'
 import { FLOOR_DISTANCE } from './constants'
 import Tree from './Tree'
+import IKSystem from './IK/IKSystem'
 
 const skinColors = [
     0xFFC6A8,
@@ -28,6 +29,18 @@ export default class Enemy extends THREE.Object3D {
     private canAttack: boolean = true
 
     private handBone: any
+    private headBone: any
+
+    private forearmRightBone: any
+    private foreArmLeftBone: any
+
+    private upperarm_left_bone: any
+    private upperarm_right_bone: any
+    
+    private shoulder_left_bone: any
+    private shoulder_right_bone: any
+
+    
 
     private previewObject: any
 
@@ -50,12 +63,15 @@ export default class Enemy extends THREE.Object3D {
     private lastViewTime: number = 0
 
     public isDead: boolean = false;
+
+    private ik: IKSystem 
   
 
     constructor(scene: THREE.Scene) {
         super()
         this.scene = scene
         this.sphere = new THREE.Sphere(new THREE.Vector3(), 0.4)
+        this.ik = new IKSystem()
         this.init()
     }
 
@@ -69,19 +85,32 @@ export default class Enemy extends THREE.Object3D {
         this.preview = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshBasicMaterial)
         this.scene.add(this.preview)
 
-        
-
-        fbxLoader.load('chars/zombie_running.fbx', async (model: any) => {
+        fbxLoader.load('chars/bot.fbx', async (model: any) => {
 
             //console.log(model, "zombieeeesadsad")
 
-            let bone = model.getObjectByName('Bone014_end')
+            //let bone = model.getObjectByName('Bone014_end')
+            
             
             let clips = model.animations;
 
             let skin = model.children[0]
 
             skin.material = new THREE.MeshStandardMaterial({color: randomFrom(skinColors)})
+
+            console.log(model, "MODELL")
+
+            let skeleton = model.children[2].skeleton
+
+            this.ik.build(skeleton.bones)
+            
+            // for (let i = 0; i < skeleton.bones.length; i++) {
+            //     let mesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({color: 0xff0000}))
+
+            //     //skeleton.bones[i].getWorldPosition( mesh.position);
+            //     mesh.position.copy(skeleton.bones[i].position)
+            //     this.scene.add(mesh)
+            // }
 
             model.traverse((child: any) => {
                 child.userData.class = this
@@ -91,7 +120,22 @@ export default class Enemy extends THREE.Object3D {
             console.log("skin",skin)
         
             
-            this.handBone = bone;
+            this.handBone = model.getObjectByName('mixamorigRightHand')
+            this.headBone = model.getObjectByName('mixamorigHead')
+            //console.log(this.headBone)
+
+            this.foreArmLeftBone = model.getObjectByName('mixamorigLeftForeArm')
+            this.forearmRightBone = model.getObjectByName('mixamorigRightForeArm')
+            
+
+            this.upperarm_left_bone = model.getObjectByName('mixamorigLeftArm')
+            this.upperarm_right_bone = model.getObjectByName('mixamorigRightArm')
+
+            this.shoulder_left_bone = model.getObjectByName('mixamorigLeftShoulder')
+            this.shoulder_right_bone = model.getObjectByName('mixamorigRightShoulder')
+
+
+            //console.log(this.headBone, "headbone")
 
             //console
 
@@ -101,7 +145,8 @@ export default class Enemy extends THREE.Object3D {
 
             this.mixer = new THREE.AnimationMixer( model );
 
-            model.scale.set(0.007, 0.007, 0.007)
+            let scale = 0.010
+            model.scale.set(scale, scale, scale)
             model.position.y -= 1.3
 
             // clips.forEach( ( clip ) => {
@@ -110,7 +155,7 @@ export default class Enemy extends THREE.Object3D {
 
        
 
-            this.walkAnim = this.mixer.clipAction( clips[0] ).play();
+            this.walkAnim = this.mixer.clipAction( clips[0] ) // .play();
 
             this.scene.add(this)
 
@@ -168,6 +213,7 @@ export default class Enemy extends THREE.Object3D {
             this.attackAnim.play()
         }
     }
+    
 
     updateMovement(elapsedTime: number, deltaTime: number) {
 
@@ -178,6 +224,17 @@ export default class Enemy extends THREE.Object3D {
         let {x, y, z} = this.physicsObject?.rigidBody.translation()
 
         this.position.set(x, y, z)
+        
+       // console.log(this.handBone)
+        //.handBone.position.y += 0.0001
+
+
+
+        let v=new THREE.Vector3()
+        //.handBone.lookAt(this.handBone.worldToLocal(v.copy(this.target.position)));
+        //this.handBone.updateMatrixWorld()
+
+        return
 
         const physics = PhysicsManager.getInstance()
 
@@ -327,20 +384,132 @@ export default class Enemy extends THREE.Object3D {
         obj.damage(10)
     }
 
+    solveIK(targetPosition: THREE.Vector3) {
+
+        targetPosition = this.handBone.position
+        // Define the bones
+        var shoulderBone = this.shoulder_right_bone;
+        var elbowBone = this.forearmRightBone;
+    
+        // Define parameters
+        var maxIterations = 100;
+        var threshold = 0.001;
+    
+        // Iterate to converge on solution
+        for (var i = 0; i < maxIterations; i++) {
+            // Calculate end-effector position
+            var endEffectorPosition = elbowBone.getWorldPosition(new THREE.Vector3());
+    
+            // Check convergence
+            if (endEffectorPosition.distanceTo(targetPosition) < threshold) {
+                break;
+            }
+    
+            // Calculate rotation to point towards target
+            var direction = new THREE.Vector3().subVectors(targetPosition, endEffectorPosition).normalize();
+            var rotation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction);
+    
+            // Apply rotation to shoulder bone
+            shoulderBone.quaternion.multiply(rotation);
+    
+            // Update elbow bone position
+            elbowBone.lookAt(targetPosition);
+    
+            // Update skeleton
+            // (This depends on how your skeleton is set up)
+            // example: scene.updateMatrixWorld(true);
+        }
+    }
+
+    updateBones() {
+
+        // function boneLookAt(bone: any, position: THREE.Vector3) {
+        //         var target = new THREE.Vector3(
+        //                 position.x - bone.matrixWorld.elements[12],
+        //                 position.y - bone.matrixWorld.elements[13],
+        //                 position.z - bone.matrixWorld.elements[14]
+        //         ).normalize();
+        //     var v = new THREE.Vector3(0,0,1);
+        //         var q = new THREE.Quaternion().setFromUnitVectors( v, target );
+        //         var tmp = -q.z;
+        //         q.z = -q.y;
+        //         q.y = tmp;
+        //     bone.quaternion.copy(q);
+        // }
+
+        let boneTarget = new THREE.Vector3(
+            this.target.position.x * 1000,
+            this.target.position.y * 1000,
+            this.target.position.z * 1000,
+        )
+
+
+        //boneLookAt(this.headBone, this.target.position)
+
+        if(this.headBone) {
+            this.headBone.lookAt(this.target.position)
+        }
+
+        
+
+        if(this.upperarm_right_bone) {
+
+            //var direction = new THREE.Vector3().copy(this.target.position).sub(this.forearmRightBone.position).normalize();
+
+            // let target = new THREE.Vector3(
+            //     this.target.position.x,
+            //     this.target.position.z,
+            //     this.target.position.y
+            // )
+            // target.applyQuaternion(this.headBone.quaternion)
+
+            //this.headBone.lookAt(target)
+
+            // Calculate the angles (yaw and pitch) to rotate the bone
+
+            // var direction = new THREE.Vector3().subVectors(this.target.position, this.upperarm_right_bone.position).normalize();
+
+            // // Create a rotation matrix to represent the rotation
+            // var matrix = new THREE.Matrix4();
+            // matrix.lookAt(this.upperarm_right_bone.position, this.target.position, new THREE.Vector3(0, 1, 0));
+
+            // // Extract the quaternion rotation from the matrix
+            // var quaternion = new THREE.Quaternion();
+            // quaternion.setFromRotationMatrix(matrix);
+
+            // // Apply the rotation to the arm bone
+            // this.upperarm_right_bone.quaternion.copy(quaternion);
+
+            //this.upperarm_right_bone.lookAt(this.target.position)
+
+            //this.forearmRightBone.lookAt(this.target.position)
+            //this.upperarm_right_bone.lookAt(this.forearmRightBone.position)
+            this.solveIK(this.target.position)
+        }
+        
+
+        // if(this.upperarm_right_bone) {
+        //     this.upperarm_right_bone.lookAt(boneTarget)
+        //     console.log(this.upperarm_right_bone.position, this.upperarm_right_bone.quaternion)
+        // }
+    }
+
 
     update(elapsedTime: number, deltaTime: number) {
         
-        if(!this.canAttack) {
-            if (elapsedTime - this.lastAttackTime >= 1) {
-                this.canAttack = true
-            }
-        }
+        // if(!this.canAttack) {
+        //     if (elapsedTime - this.lastAttackTime >= 1) {
+        //         this.canAttack = true
+        //     }
+        // }
         
         if(!this.mixer || !this.physicsObject) {
             return
         }
 
         if(this.handBone) {
+            //this.handBone.position.add(new THREE.Vector3(0,1,0))
+            this.handBone.lookAt(this.target.position)
             this.handBone.getWorldPosition( this.previewObject.position );
         }
 
@@ -351,8 +520,11 @@ export default class Enemy extends THREE.Object3D {
         }
 
 
+        this.ik.update()
+
         this.updateMovement(elapsedTime, deltaTime)
         
+        //this.updateBones()
 
         
         this.mixer.update(deltaTime)

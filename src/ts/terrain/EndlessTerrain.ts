@@ -13,6 +13,8 @@ const treePrefab = await loadGLB('models/tree_test.glb')
 const treeDarkPrefab = await loadGLB('models/tree2.glb')
 const plantPrefab = await loadGLB('models/plant.glb')
 
+const rockPrefab = await loadGLB('models/rock.glb')
+
 export default class EndlessTerrain {
     
     public static maxViewDistance: number = 600
@@ -220,12 +222,13 @@ class TerrainChunk {
 
         let plant = plantPrefab.scene.clone().getObjectByName('plant')
 
+        let rock = rockPrefab.scene.clone().getObjectByName('rock')
         //console.log(plant)
 
 
         //console.log(bark.geometry, bark.material)
 
-        var mergedGeometry = BufferGeometryUtils.mergeGeometries([bark.geometry, leaves.geometry]);
+        //var mergedGeometry = BufferGeometryUtils.mergeGeometries([bark.geometry, leaves.geometry]);
 
         //console.log(mergedGeometry)
 
@@ -257,10 +260,10 @@ class TerrainChunk {
 
             obj.position.set(x,y,z).add(pos)
 
-            if(Math.random() > 0.6 && y > 10) {
+            if(Math.random() > 0.6 && y > 10) { // trees
                 positions.push(new THREE.Vector3(x,y,z).add(pos))
             }
-            else {
+            else if(Math.random() > 0.9 && y > 14) { // rocks
                 positions2.push(new THREE.Vector3(x,y,z).add(pos))
             }
 
@@ -286,6 +289,8 @@ class TerrainChunk {
         }
 
         let instancedMesh = new THREE.InstancedMesh(tree2.geometry, tree2.material, positions.length)
+
+        let rockInstancedMesh = new THREE.InstancedMesh(rock.geometry, rock.material, positions2.length)
         //let instancedMesh2 = new THREE.InstancedMesh(leaves.geometry, leaves.material, positions.length)
 
         //let instancedMesh3 = new THREE.InstancedMesh(tree2.geometry, tree2.material, positions.length)
@@ -306,32 +311,35 @@ class TerrainChunk {
            // instancedMesh2.setMatrixAt(i, instanceMatrix)
         }
 
-        // for (let i = 0; i < positions2.length; i++) {
+        for (let i = 0; i < positions2.length; i++) {
 
-        //     let instanceMatrix = new THREE.Matrix4
-        //    // var position = new THREE.Vector3(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
-        //     var rotation = new THREE.Euler(0, 0, 0);
-        //     let randScale = randomBetween(2, 3)
-        //     var scale = new THREE.Vector3(randScale, randScale, randScale)
+            let instanceMatrix = new THREE.Matrix4
+           // var position = new THREE.Vector3(Math.random() * 100 - 50, 0, Math.random() * 100 - 50);
+            var rotation = new THREE.Euler(0, 0, 0);
+            let randScale = randomBetween(2, 3)
+            var scale = new THREE.Vector3(randScale, randScale, randScale)
 
-        //     //   //Create a transformation matrix for the instance
-        //     instanceMatrix.compose(positions2[i].clone(), new THREE.Quaternion().setFromEuler(rotation), scale);
-        //     instancedMesh3.setMatrixAt(i, instanceMatrix)
+            //   //Create a transformation matrix for the instance
+            instanceMatrix.compose(positions2[i].clone(), new THREE.Quaternion().setFromEuler(rotation), scale);
+            rockInstancedMesh.setMatrixAt(i, instanceMatrix)
 
-        //     //console.log('yla')
-        //     //instancedMesh2.setMatrixAt(i, instanceMatrix)
+            //console.log('yla')
+            //instancedMesh2.setMatrixAt(i, instanceMatrix)
 
-        // }
+        }
         
 
         //console.log(positions)
 
         instancedMesh.updateMatrixWorld()
-        //instancedMesh2.updateMatrixWorld()
+        rockInstancedMesh.updateMatrixWorld()
         //instancedMesh3.updateMatrixWorld()
         //plantInstancedMesh.updateMatrixWorld()
         this.terrain.scene.add(instancedMesh)
+        this.terrain.scene.add(rockInstancedMesh)
+
         this.entities.push(instancedMesh)
+        this.entities.push(rockInstancedMesh)
         //console.log(this.entities, "entities")
     }
 

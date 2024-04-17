@@ -103,13 +103,25 @@ export default class World {
 
         const planeGeo = new THREE.PlaneGeometry(1000, 1000)
 
-        const ground = new THREE.Mesh(planeGeo, groundMaterial)
+        const planeMat = new THREE.MeshStandardMaterial()
+        const ground = new THREE.Mesh(planeGeo, planeMat)
+        let tl = new THREE.TextureLoader()
+
+        const groundTexture1 = tl.load('dev.jpg');
+        groundTexture1.repeat = new THREE.Vector2(100, 100)
+        groundTexture1.wrapS = THREE.RepeatWrapping
+        groundTexture1.wrapT = THREE.RepeatWrapping
+        groundTexture1.magFilter = THREE.NearestFilter;
+
+        planeMat.map = groundTexture1
+
+
         ground.rotation.x -= Math.PI/2;
         ground.position.y = 0.5
-        ground.visible = false
+        ground.visible = true
 
-        //this.physics.createFixedBox(ground.position, new THREE.Vector3(1000, ground.position.y - 0.5, 1000))
-        //this.scene.add(ground)
+        this.physics.createFixedBox(ground.position, new THREE.Vector3(1000, ground.position.y - 0.5, 1000))
+        this.scene.add(ground)
 
         this.camera.add(listener)
 
@@ -121,7 +133,7 @@ export default class World {
 
         //let car = new Car(this.scene)
 
-        this.endlessTerrain = new EndlessTerrain(this.scene, player)
+        //this.endlessTerrain = new EndlessTerrain(this.scene, player)
 
         let ocean = new THREE.Mesh(new THREE.PlaneGeometry(1000,1000), new THREE.MeshStandardMaterial({color: 0x0000ff, transparent: true, opacity: 0.6}))
         ocean.rotation.x = -Math.PI / 2
@@ -151,7 +163,7 @@ export default class World {
         //this.generateTerrain(nsubdivs, scale);
         //this.generateTerrain(100, 100, 20)
 
-        //this.spawner = new SpawnManager(this.scene, player)
+        this.spawner = new SpawnManager(this.scene, player)
     }
 
     spawnTrees() {
@@ -163,7 +175,7 @@ export default class World {
     update(elapsedTime: number, deltaTime: number) {
 
         
-        //this.spawner.update(elapsedTime, deltaTime)
+        this.spawner.update(elapsedTime, deltaTime)
         this.endlessTerrain?.update(elapsedTime, deltaTime)
 
         this.entityManager.update(elapsedTime, deltaTime)

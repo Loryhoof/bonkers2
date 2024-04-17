@@ -8,13 +8,13 @@ export class SpawnManager {
     private scene: THREE.Scene
 
     private lastSpawnTime: number = 0
-    private spawnInterval: number = 2
+    private spawnInterval: number = 0
 
     private player: Player
     
     private entities: Array<Enemy>
 
-    private maxSpawns: number = 15
+    private maxSpawns: number = 1
 
     constructor(scene: THREE.Scene, player: Player) {
         this.scene = scene
@@ -24,7 +24,7 @@ export class SpawnManager {
 
     spawnZombies() {
 
-        if(this.entities.length > this.maxSpawns) {
+        if(this.entities.length >= this.maxSpawns) {
             return
         }
 
