@@ -65,13 +65,17 @@ export default class Enemy extends THREE.Object3D {
     public isDead: boolean = false;
 
     private ik: IKSystem 
+
+    private skeleton: {} = {}
+
+    private arm: {} = {}
   
 
     constructor(scene: THREE.Scene) {
         super()
         this.scene = scene
         this.sphere = new THREE.Sphere(new THREE.Vector3(), 0.4)
-        this.ik = new IKSystem()
+        this.ik = new IKSystem(this.scene)
         this.init()
     }
 
@@ -102,7 +106,18 @@ export default class Enemy extends THREE.Object3D {
 
             let skeleton = model.children[2].skeleton
 
-            this.ik.build(skeleton.bones)
+            console.log(skeleton)
+
+            this.arm = {
+                shoulder: model.getObjectByName('mixamorigRightShoulder'),
+                arm: model.getObjectByName('mixamorigRightArm'),
+                forearm: model.getObjectByName('mixamorigRightForeArm'),
+                hand: model.getObjectByName('mixamorigRightHand')
+            }
+
+            //console.log(this.arm.shoulder)
+
+            this.ik.build([this.arm.shoulder, this.arm.arm, this.arm.forearm, this.arm.hand]) // skeleton.bones
             
             // for (let i = 0; i < skeleton.bones.length; i++) {
             //     let mesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({color: 0xff0000}))
@@ -133,6 +148,7 @@ export default class Enemy extends THREE.Object3D {
 
             this.shoulder_left_bone = model.getObjectByName('mixamorigLeftShoulder')
             this.shoulder_right_bone = model.getObjectByName('mixamorigRightShoulder')
+            
 
 
             //console.log(this.headBone, "headbone")
@@ -447,7 +463,7 @@ export default class Enemy extends THREE.Object3D {
         //boneLookAt(this.headBone, this.target.position)
 
         if(this.headBone) {
-            this.headBone.lookAt(this.target.position)
+            //this.headBone.lookAt(this.target.position)
         }
 
         
@@ -484,7 +500,7 @@ export default class Enemy extends THREE.Object3D {
 
             //this.forearmRightBone.lookAt(this.target.position)
             //this.upperarm_right_bone.lookAt(this.forearmRightBone.position)
-            this.solveIK(this.target.position)
+            //this.solveIK(this.target.position)
         }
         
 
@@ -507,11 +523,11 @@ export default class Enemy extends THREE.Object3D {
             return
         }
 
-        if(this.handBone) {
-            //this.handBone.position.add(new THREE.Vector3(0,1,0))
-            this.handBone.lookAt(this.target.position)
-            this.handBone.getWorldPosition( this.previewObject.position );
-        }
+        // if(this.handBone) {
+        //     //this.handBone.position.add(new THREE.Vector3(0,1,0))
+        //     this.handBone.lookAt(this.target.position)
+        //     this.handBone.getWorldPosition( this.previewObject.position );
+        // }
 
 
         if(elapsedTime - this.lastViewTime >= 0.75) {
