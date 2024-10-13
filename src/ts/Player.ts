@@ -94,7 +94,7 @@ export default class Player extends THREE.Object3D {
         this.model = new THREE.Mesh(geometry, material)
         this.model.position.set(0, 0, 0)
 
-        const pistol = new Sniper(15, this.camera, this.scene, this.recoilParent)
+        const pistol = new Pistol(15, this.camera, this.scene, this.recoilParent)
         this.inventory.add(pistol)
         this.hotBar[0] = pistol
 
