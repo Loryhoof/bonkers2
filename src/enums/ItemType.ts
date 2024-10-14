@@ -1,5 +1,3 @@
-// enums.ts
-
 enum ItemType {
   RESOURCES = "resources",
   AMMO = "ammo",
