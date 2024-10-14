@@ -161,9 +161,10 @@ async function init() {
   });
 
   // Start the server on port 3000
-  httpServer.listen(3000, () => {
-    console.log("Server is running on http://localhost:3000");
+  httpServer.listen(3000, '0.0.0.0', () => {
+    console.log("Server is running and accessible from any IP on port 3000");
   });
+  
 }
 
 function simplifyPlayerList(players: PlayerDictionary) {

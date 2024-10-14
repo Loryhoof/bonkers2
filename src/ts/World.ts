@@ -27,7 +27,7 @@ import RemotePlayer from "./RemotePlayer";
 
 const loader = new GLTFLoader();
 
-const socket = io("http://localhost:3000");
+const socket = io("http://159.223.23.178:3000");
 
 let lastPingTime = 0;
 let currentPing = 0;
