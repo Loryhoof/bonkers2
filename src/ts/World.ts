@@ -27,7 +27,7 @@ import RemotePlayer from "./RemotePlayer";
 
 const loader = new GLTFLoader();
 
-const socket = io("http://159.223.23.178:3000");
+const socket = io("http://localhost:3000"); //http://159.223.23.178:3000
 
 let lastPingTime = 0;
 let currentPing = 0;
@@ -282,7 +282,29 @@ export default class World {
 
         if (data.networkId == networkId) {
           const newPosition = data.position;
+
+          const direction = new THREE.Vector3(
+            data.direction.x,
+            0,
+            data.direction.z
+          );
+
+          // Create a new quaternion
+          const quaternion = new THREE.Quaternion();
+
+          // The default forward direction in THREE.js is (0, 0, -1),
+          // so we want to rotate this to match the direction vector.
+          const forward = new THREE.Vector3(0, 0, 1); // Default forward
+          quaternion.setFromUnitVectors(forward, direction.normalize());
+
+          // Apply the quaternion to the entity
+          entity.quaternion.copy(quaternion);
+
           entity.position.set(newPosition.x, newPosition.y, newPosition.z);
+
+          entity.setAnimationVelocity(
+            new THREE.Vector3(data.velocity.x, data.velocity.y, data.velocity.z)
+          );
 
           entity.cameraParent?.position
             .copy(entity.position)
@@ -300,7 +322,6 @@ export default class World {
 
   updateInput() {
     const entities = EntityManager.getInstance().getEntities();
-
     let dir = null;
 
     for (const entity of entities) {
@@ -311,35 +332,32 @@ export default class World {
         entity.controller.controls
           .getObject()
           .getWorldDirection(cameraDirection);
-        //this.player.cameraParent.getWorldDirection(cameraDirection)
         cameraDirection.normalize();
-
         dir = cameraDirection;
       }
     }
 
-    if (this.inputManager.isKeyPressed("KeyW")) {
+    const pressedKeys = [];
+
+    if (this.inputManager.isKeyPressed("KeyW")) pressedKeys.push("w");
+    if (this.inputManager.isKeyPressed("KeyA")) pressedKeys.push("a");
+    if (this.inputManager.isKeyPressed("KeyS")) pressedKeys.push("s");
+    if (this.inputManager.isKeyPressed("KeyD")) pressedKeys.push("d");
+
+    // Check for Shift key (sprint)
+    const isSprinting = this.inputManager.isKeyPressed("ShiftLeft");
+
+    if (pressedKeys.length > 0) {
       socket.emit("move", {
-        key: "w",
+        keys: pressedKeys,
         dir: { x: dir?.x, y: dir?.y, z: dir?.z },
+        sprint: isSprinting, // Add sprint data
       });
-    }
-    if (this.inputManager.isKeyPressed("KeyA")) {
+    } else {
       socket.emit("move", {
-        key: "a",
+        keys: [],
         dir: { x: dir?.x, y: dir?.y, z: dir?.z },
-      });
-    }
-    if (this.inputManager.isKeyPressed("KeyS")) {
-      socket.emit("move", {
-        key: "s",
-        dir: { x: dir?.x, y: dir?.y, z: dir?.z },
-      });
-    }
-    if (this.inputManager.isKeyPressed("KeyD")) {
-      socket.emit("move", {
-        key: "d",
-        dir: { x: dir?.x, y: dir?.y, z: dir?.z },
+        sprint: isSprinting,
       });
     }
   }

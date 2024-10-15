@@ -37,6 +37,7 @@ const addPlayer = (id: string) => {
   players[id] = {
     networkId: id,
     position: PLAYER_START_POSITION,
+    direction: new Vector3(),
     physicsObject: physicsObject,
     velocity: new Vector3(),
   };
@@ -71,7 +72,7 @@ async function init() {
   // );
 
   // Adding ground
-  physics.createFixedBox({ x: 0, y: 0, z: 0 }, { x: 1000, y: 1, z: 1000 });
+  physics.createFixedBox({ x: 0, y: -0.5, z: 0 }, { x: 1000, y: 1, z: 1000 });
 
   tick();
 
@@ -92,61 +93,45 @@ async function init() {
     });
 
     socket.on("move", (data) => {
-      const { key, dir } = data;
+      const { keys, dir, sprint } = data;
 
       const player = players[socket.id];
-
       if (!player) {
         console.log("Player does not exist");
+        return;
       }
 
-      const speedFactor = 10;
+      player.direction = dir;
+
+      let speedFactor = 5;
+      if (sprint) {
+        speedFactor = 10; // Double speed when sprinting
+      }
 
       const cameraForward = normalize({ x: dir.x, y: 0, z: dir.z });
+      const left = { x: dir.z, y: 0, z: -dir.x };
+      const right = { x: -dir.z, y: 0, z: dir.x };
 
-      //console.log(cameraForward, "cameraForward");
+      player.velocity.set(0, 0, 0); // Reset velocity before adding
 
-      player.velocity.set(0, 0, 0);
-
-      if (key == "w") {
-        let val = multiplyScalar(cameraForward, speedFactor);
-        //console.log(val, "val");
+      if (keys.includes("w")) {
+        const val = multiplyScalar(cameraForward, speedFactor);
         player.velocity.add(new Vector3(val.x, val.y, val.z));
-        // physics?.setLinearVelocity(
-        //   player.physicsObject.rigidBody,
-        //   multiplyScalar(cameraForward, speedFactor)
-        // );
       }
-      if (key == "a") {
-        const left = { x: dir.z, y: 0, z: -dir.x };
-
-        let val = multiplyScalar(left, speedFactor);
+      if (keys.includes("a")) {
+        const val = multiplyScalar(left, speedFactor);
         player.velocity.add(new Vector3(val.x, val.y, val.z));
-
-        // physics?.setLinearVelocity(
-        //   player.physicsObject.rigidBody,
-        //   multiplyScalar(left, speedFactor)
-        // );
       }
-      if (key == "s") {
-        let val = multiplyScalar(cameraForward, -speedFactor);
+      if (keys.includes("s")) {
+        const val = multiplyScalar(cameraForward, -speedFactor);
         player.velocity.add(new Vector3(val.x, val.y, val.z));
-        // physics?.setLinearVelocity(
-        //   player.physicsObject.rigidBody,
-        //   multiplyScalar(cameraForward, -speedFactor)
-        // );
       }
-      if (key == "d") {
-        const right = { x: -dir.z, y: 0, z: dir.x };
-
-        let val = multiplyScalar(right, speedFactor);
+      if (keys.includes("d")) {
+        const val = multiplyScalar(right, speedFactor);
         player.velocity.add(new Vector3(val.x, val.y, val.z));
-
-        // physics?.setLinearVelocity(
-        //   player.physicsObject.rigidBody,
-        //   multiplyScalar(right, speedFactor)
-        // );
       }
+
+      // If no keys pressed, velocity will remain at zero
     });
 
     // Return a list of all current players
@@ -161,10 +146,9 @@ async function init() {
   });
 
   // Start the server on port 3000
-  httpServer.listen(3000, '0.0.0.0', () => {
+  httpServer.listen(3000, "0.0.0.0", () => {
     console.log("Server is running and accessible from any IP on port 3000");
   });
-  
 }
 
 function simplifyPlayerList(players: PlayerDictionary) {
@@ -200,20 +184,18 @@ function tick() {
 
       physics.setLinearVelocity(player.physicsObject.rigidBody, displacement);
 
-      player.velocity.set(0, 0, 0);
-
       const position = physicsObject.rigidBody.translation();
 
       const data = {
         networkId: networkId,
         position: { x: position.x, y: position.y, z: position.z },
+        direction: player.direction,
+        velocity: player.velocity,
       };
 
-      //console.log(data);
-
-      //console.log(data);
-
       io.emit("player-update", data);
+
+      player.velocity.set(0, 0, 0);
     }
 
     // if (demoObject) {

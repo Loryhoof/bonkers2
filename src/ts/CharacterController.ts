@@ -517,7 +517,7 @@ export default class CharacterController {
   }
 
   update(elapsedTime: number, deltaTime: number) {
-    this.checkGround();
+    //this.checkGround();
     //this.checkInfront()
     //this.handleMovement(elapsedTime, deltaTime);
     //this.controls.update()

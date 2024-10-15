@@ -45,6 +45,8 @@ export default class Player extends THREE.Object3D {
 
   public networkId: string;
 
+  private animationVelocity: THREE.Vector3 = new THREE.Vector3();
+
   constructor(networkId: string, scene: THREE.Scene, camera: THREE.Camera) {
     super();
 
@@ -126,6 +128,10 @@ export default class Player extends THREE.Object3D {
     this.traverse((child) => {
       child.userData.class = this;
     });
+  }
+
+  setAnimationVelocity(vector: THREE.Vector3) {
+    this.animationVelocity.copy(vector);
   }
 
   damage(dmg: number) {

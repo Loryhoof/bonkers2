@@ -4,6 +4,7 @@ import Vector3 from "./Vector3";
 interface Player {
   networkId: string;
   position: { x: number; y: number; z: number };
+  direction: { x: number; y: number; z: number };
   physicsObject: PhysicsObject;
   velocity: Vector3;
 }
